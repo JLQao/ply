@@ -442,7 +442,7 @@
     }
 
     async function startDrawProcess() {
-        if (!walletRoundStarted) { const remaining = await gameBridge.debit('ahkam', 100); if (remaining === null) return; walletRoundStarted = true; }
+        if (!walletRoundStarted) { const remaining = await gameBridge.debit('ahkam', gameBridge.getBet()); if (remaining === null) return; walletRoundStarted = true; }
         playClickSound();
         const inputName = document.getElementById("player-name").value.trim();
         userPlayerName = inputName ? inputName : "المحارب الملكي";

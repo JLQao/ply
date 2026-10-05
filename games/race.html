@@ -277,6 +277,8 @@
     let isTouching = false;
     let isGameOver = false;
     let walletRoundStarted = false;
+    const raceFinishDistance = 1200;
+    let raceFinished = false;
 
     let speed = 0;
     const maxSpeed = 26; 
@@ -308,7 +310,7 @@
 
     async function handlePointerStart(e) {
       if (isGameOver) return;
-      if (!walletRoundStarted) { const remaining = await gameBridge.debit('race', 100); if (remaining === null) return; walletRoundStarted = true; }
+      if (!walletRoundStarted) { const remaining = await gameBridge.debit('race', gameBridge.getBet()); if (remaining === null) return; walletRoundStarted = true; }
       initAudio();
       isTouching = true;
       updatePointerPos(e);
@@ -346,6 +348,7 @@
       }
 
       distanceTraveled += speed * 0.25;
+      if (distanceTraveled >= raceFinishDistance && !raceFinished) triggerRaceFinish();
       roadOffset = (roadOffset + speed) % 80;
 
       player.x += (player.targetX - player.x) * 0.22;
@@ -383,6 +386,15 @@
       document.getElementById('speedMeter').innerHTML = `${Math.round(speed * 11.5)} <small style="font-size:0.7rem;">KM/H</small>`;
       document.getElementById('rankMeter').innerText = `${rank} / 5`;
       document.getElementById('distMeter').innerHTML = `${Math.round(distanceTraveled)} <small style="font-size:0.7rem;">m</small>`;
+    }
+
+    async function triggerRaceFinish() {
+      raceFinished = true; isGameOver = true; isTouching = false;
+      if (engineGain && audioCtx) engineGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.1);
+      document.getElementById('finalRank').innerText = '🏁 وصلت إلى خط النهاية أولاً!';
+      document.getElementById('finalDist').innerText = `الجائزة: ${gameBridge.getBet()*2} كوينز`;
+      await gameBridge.credit('race', gameBridge.getBet()*2);
+      document.getElementById('gameOverModal').classList.add('active');
     }
 
     function triggerGameOver() {
@@ -427,6 +439,7 @@
 
       ctx.fillStyle = '#081c10'; ctx.fillRect(0, 0, W, H);
       ctx.fillStyle = '#181a20'; ctx.fillRect(roadLeft, 0, roadWidth, H);
+      if (raceFinishDistance-distanceTraveled < 180) { ctx.fillStyle='#ffd700'; ctx.fillRect(roadLeft,120,roadWidth,10); ctx.fillStyle='#111'; for(let fx=roadLeft;fx<roadRight;fx+=24) ctx.fillRect(fx,120,12,10); }
 
       const curbHeight = 40;
       for (let y = -80 + roadOffset; y < H + 80; y += curbHeight) {

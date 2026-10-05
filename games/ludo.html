@@ -332,7 +332,7 @@
 
     async function handleDiceRoll() {
       if (hasRolled || isAnimating) return;
-      if (!walletRoundStarted) { const remaining = await gameBridge.debit('ludo', 100); if (remaining === null) return; walletRoundStarted = true; }
+      if (!walletRoundStarted) { const remaining = await gameBridge.debit('ludo', gameBridge.getBet()); if (remaining === null) return; walletRoundStarted = true; }
 
       const diceEl = document.getElementById('diceVal');
       diceEl.classList.add('rolling');
@@ -411,7 +411,7 @@
       }, 160);
     }
 
-    function finalizeMove(pawnIdx) {
+    async function finalizeMove(pawnIdx) {
       const p = currentTurn;
       let newPos = pawns[p][pawnIdx];
       let bonusTurn = (diceValue === 6);
@@ -449,6 +449,7 @@
       if (pawns[p].every(val => val === 56)) {
         playWinSound();
         logMessage(`🎉🏆 ألف مبروك! فاز ${players[p].name} بالمركز الأول! 🏆🎉`);
+        if (p === 0) await gameBridge.credit('ludo', gameBridge.getBet() * 4);
         drawBoard();
         return;
       }

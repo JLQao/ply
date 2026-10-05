@@ -2,6 +2,7 @@
 window.gameBridge = (() => {
   const client = window.supabaseClient;
   let user = null, profile = null;
+  function getBet(){ return Number(new URLSearchParams(location.search).get('bet')||100); }
   async function ready(){
     if(!client) throw new Error('تعذر تهيئة اتصال الحساب');
     const {data,error}=await client.auth.getUser();
@@ -25,5 +26,5 @@ window.gameBridge = (() => {
   }
   function subscribe(matchId,handler){ return client.channel('game-match-'+matchId).on('postgres_changes',{event:'INSERT',schema:'public',table:'game_events',filter:'match_id=eq.'+matchId},payload=>handler(payload.new)).subscribe(); }
   async function event(matchId,type,payload){ await ready(); return client.from('game_events').insert({match_id:matchId,user_id:user.id,event_type:type,payload}); }
-  return {ready,debit,credit,subscribe,event,get profile(){return profile},get user(){return user}};
+  return {ready,debit,credit,subscribe,event,getBet,get profile(){return profile},get user(){return user}};
 })();

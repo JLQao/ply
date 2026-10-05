@@ -319,7 +319,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../js/supabase.js"></script><script src="../js/game-bridge.js"></script><script>
     let playerMode = 4;
-    let betAmount = 50;
+    let betAmount = Number(new URLSearchParams(location.search).get('bet')||50);
     let balance = 0;
     let pot = 0;
 

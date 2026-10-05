@@ -1,0 +1,341 @@
+:root {
+    --bg-color: #000000;
+    --gold: #f2c94c;
+    --gold-gradient: linear-gradient(135deg, #f2c94c 0%, #e0ac2b 50%, #f2994a 100%);
+    --gold-glow: rgba(242, 201, 76, 0.5);
+    --text-main: #ffffff;
+    --text-muted: #b8b8cc;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Tajawal', sans-serif;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    overflow-x: hidden;
+    padding-bottom: 95px;
+    position: relative;
+}
+
+/* خلفية ضخمة وفخمة جداً خاصة بصفحة التوب */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(180deg, rgba(5, 5, 10, 0.6) 0%, rgba(0, 0, 0, 0.9) 80%),
+                url('https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80');
+    background-size: cover;
+    background-position: center;
+    z-index: -2;
+    animation: bgZoom 20s ease-in-out infinite alternate;
+}
+
+@keyframes bgZoom {
+    0% { transform: scale(1); }
+    100% { transform: scale(1.08); }
+}
+
+.fade-in {
+    animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* الشريط العلوي الفخم */
+.top-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background: rgba(10, 10, 15, 0.85);
+    position: sticky;
+    top: 0;
+    z-index: 99;
+    backdrop-filter: blur(25px);
+    border-bottom: 1px solid rgba(242, 201, 76, 0.3);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+}
+
+.user-balance {
+    background: linear-gradient(135deg, rgba(242, 201, 76, 0.2), rgba(0,0,0,0.8));
+    border: 1px solid var(--gold);
+    padding: 7px 15px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-weight: bold;
+    color: var(--gold);
+    box-shadow: 0 0 15px var(--gold-glow);
+    font-size: 13px;
+}
+
+.platform-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.platform-logo-img {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 2px solid var(--gold);
+    object-fit: cover;
+    box-shadow: 0 0 15px var(--gold-glow);
+}
+
+.platform-title {
+    font-size: 20px;
+    font-weight: bold;
+    letter-spacing: 1.5px;
+    background: var(--gold-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 3px 6px rgba(0,0,0,0.8);
+    font-family: 'Tajawal', sans-serif;
+}
+
+.main-content {
+    padding: 20px;
+}
+
+/* عنوان القسم الملكي */
+.leaderboard-title-card {
+    text-align: center;
+    margin-bottom: 25px;
+    padding: 20px;
+    background: rgba(15, 15, 25, 0.75);
+    backdrop-filter: blur(15px);
+    border-radius: 22px;
+    border: 1px solid rgba(242, 201, 76, 0.4);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.8);
+}
+
+.leaderboard-title-card h2 {
+    font-size: 24px;
+    background: var(--gold-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 5px;
+    text-shadow: 0 2px 10px var(--gold-glow);
+}
+
+.leaderboard-title-card p {
+    color: var(--text-muted);
+    font-size: 13px;
+}
+
+/* قائمة التوب VIP (الأزرار الفخمة للأشخاص) */
+.leaderboard-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 25px;
+}
+
+.leaderboard-item {
+    position: relative;
+    background: linear-gradient(135deg, rgba(20, 20, 32, 0.88), rgba(10, 10, 16, 0.95));
+    border: 1.5px solid rgba(242, 201, 76, 0.25);
+    border-radius: 20px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+    backdrop-filter: blur(10px);
+}
+
+/* تمييز المراكز الثلاثة الأولى بفخامة خاصة جداً */
+.leaderboard-item.rank-1 {
+    background: linear-gradient(135deg, rgba(50, 40, 10, 0.9), rgba(20, 16, 5, 0.95));
+    border-color: #f2c94c;
+    box-shadow: 0 0 25px rgba(242, 201, 76, 0.35), inset 0 0 15px rgba(242, 201, 76, 0.15);
+}
+
+.leaderboard-item.rank-2 {
+    background: linear-gradient(135deg, rgba(30, 32, 40, 0.9), rgba(12, 14, 20, 0.95));
+    border-color: #d1d5db;
+    box-shadow: 0 0 20px rgba(209, 213, 219, 0.25);
+}
+
+.leaderboard-item.rank-3 {
+    background: linear-gradient(135deg, rgba(40, 25, 15, 0.9), rgba(18, 10, 5, 0.95));
+    border-color: #b45309;
+    box-shadow: 0 0 20px rgba(180, 83, 9, 0.25);
+}
+
+.leaderboard-item:hover {
+    transform: translateY(-4px) scale(1.02);
+    border-color: var(--gold);
+    box-shadow: 0 15px 35px rgba(242, 201, 76, 0.3);
+}
+
+.user-info-group {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* الترتيب (الرقم) */
+.rank-badge {
+    width: 35px;
+    height: 35px;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 15px;
+    color: #fff;
+    flex-shrink: 0;
+}
+
+.rank-1 .rank-badge {
+    background: var(--gold-gradient);
+    color: #000;
+    border-color: #fff;
+    box-shadow: 0 0 10px var(--gold);
+}
+
+.rank-2 .rank-badge {
+    background: linear-gradient(135deg, #e5e7eb, #9ca3af);
+    color: #000;
+}
+
+.rank-3 .rank-badge {
+    background: linear-gradient(135deg, #d97706, #78350f);
+    color: #fff;
+}
+
+/* بروفايل الشخص الصغير الفخم */
+.user-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 2px solid var(--gold);
+    object-fit: cover;
+    box-shadow: 0 0 12px var(--gold-glow);
+    flex-shrink: 0;
+}
+
+.user-details h4 {
+    font-size: 17px;
+    color: #fff;
+    margin-bottom: 3px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+}
+
+.user-details span {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+/* عدد الكوينزات (النقود) للشخص */
+.user-coins-display {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(135deg, rgba(242, 201, 76, 0.15), rgba(0,0,0,0.6));
+    border: 1px solid var(--gold);
+    padding: 8px 14px;
+    border-radius: 18px;
+    font-weight: bold;
+    color: var(--gold);
+    font-size: 14px;
+    box-shadow: 0 0 12px var(--gold-glow);
+}
+
+/* الشريط السفلي الثابت */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 75px;
+    background: rgba(5, 5, 8, 0.95);
+    backdrop-filter: blur(25px);
+    border-top: 1.5px solid rgba(242, 201, 76, 0.25);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 0 5px;
+    z-index: 1000;
+    box-shadow: 0 -15px 35px rgba(0,0,0,0.9);
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    width: 15%;
+    height: 100%;
+    position: relative;
+}
+
+.nav-item i {
+    font-size: 19px;
+    margin-bottom: 4px;
+    transition: all 0.3s ease;
+}
+
+.nav-item span {
+    font-size: 10px;
+    font-weight: bold;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: all 0.3s ease;
+    position: absolute;
+    bottom: 8px;
+    white-space: nowrap;
+}
+
+.nav-item.active {
+    color: var(--gold);
+}
+
+.nav-item.active i {
+    transform: translateY(-10px) scale(1.2);
+    text-shadow: 0 0 20px var(--gold-glow);
+}
+
+.nav-item.active span {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.nav-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    width: 0;
+    height: 3.5px;
+    background: var(--gold-gradient);
+    border-radius: 0 0 6px 6px;
+    transition: width 0.3s ease;
+    box-shadow: 0 0 12px var(--gold);
+}
+
+.nav-item.active::before {
+    width: 28px;
+}

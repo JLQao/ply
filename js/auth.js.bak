@@ -1,0 +1,140 @@
+function toggleForm(formType) {
+    const loginForm = document.getElementById("login-form");
+    const registerForm = document.getElementById("register-form");
+    const title = document.getElementById("form-title");
+    const desc = document.getElementById("form-desc");
+
+    if (formType === 'register') {
+        loginForm.style.display = 'none';
+        registerForm.style.display = 'block';
+        title.innerText = "إنشاء حساب جديد";
+        desc.innerText = "انضم إلى منصة الألعاب الفخمة واحصل على آي دي خاص بك";
+    } else {
+        registerForm.style.display = 'none';
+        loginForm.style.display = 'block';
+        title.innerText = "تسجيل الدخول";
+        desc.innerText = "أهلاً بك مجدداً في منصة الألعاب الفخمة";
+    }
+}
+
+function showLoader(show) {
+    const loader = document.getElementById("loader");
+    if (loader) {
+        loader.style.display = show ? 'block' : 'none';
+    }
+}
+
+// دالة لترجمة أخطاء Supabase إلى اللغة العربية بدقة
+function translateSupabaseError(message) {
+    if (!message) return "حدث خطأ غير معروف.";
+    
+    const lowerMsg = message.toLowerCase();
+    if (lowerMsg.includes("already registered") || lowerMsg.includes("already exists")) {
+        return "البريد الإلكتروني أو اسم المستخدم مستخدم مسبقاً، يرجى اختيار بيانات أخرى.";
+    } else if (lowerMsg.includes("invalid login credentials") || lowerMsg.includes("invalid email or password")) {
+        return "البريد الإلكتروني أو كلمة المرور غير صحيحة.";
+    } else if (lowerMsg.includes("password should be")) {
+        return "كلمة المرور ضعيفة جداً، يجب أن تكون 6 أحرف أو أرقام على الأقل.";
+    } else if (lowerMsg.includes("email rate limit")) {
+        return "تم إرسال طلبات كثيرة جداً، يرجى المحاولة بعد قليل.";
+    }
+    
+    return "خطأ في العملية: " + message;
+}
+
+// دالة إنشاء حساب جديد مع التعريب الكامل وحفظ الجلسة لملف Profile
+async function registerWithEmail() {
+    const name = document.getElementById("reg-name").value.trim();
+    const email = document.getElementById("reg-email").value.trim();
+    const password = document.getElementById("reg-password").value.trim();
+
+    if (!name || !email || !password) {
+        alert("يرجى تعبئة جميع الحقول المطلوبة!");
+        return;
+    }
+
+    showLoader(true);
+
+    try {
+        if (!window.supabaseClient) {
+            throw new Error("مكتبة Supabase غير متصلة!");
+        }
+
+        const { data, error } = await window.supabaseClient.auth.signUp({
+            email: email,
+            password: password,
+            options: {
+                data: { full_name: name }
+            }
+        });
+
+        if (error) {
+            throw error;
+        }
+
+        // حفظ بيانات الجلسة بجميع المفاتيح المتوافقة مع صفحات الموقع والتوب وفريل
+        localStorage.setItem("webchat_username", name);
+        localStorage.setItem("webchat_email", email);
+        if (data.user) {
+            localStorage.setItem("user_id", data.user.id);
+        }
+
+        showLoader(false);
+        alert("تم إنشاء الحساب بنجاح يا أسطورة!");
+        window.location.href = "profile.html";
+
+    } catch (err) {
+        showLoader(false);
+        console.error("خطأ تسجيل:", err);
+        alert(translateSupabaseError(err.message));
+    }
+}
+
+// دالة تسجيل الدخول مع التعريب
+async function loginWithEmail() {
+    const email = document.getElementById("login-email").value.trim();
+    const password = document.getElementById("login-password").value.trim();
+
+    if (!email || !password) {
+        alert("يرجى إدخال البريد الإلكتروني وكلمة المرور!");
+        return;
+    }
+
+    showLoader(true);
+
+    try {
+        if (!window.supabaseClient) {
+            throw new Error("مكتبة Supabase غير متصلة!");
+        }
+
+        const { data, error } = await window.supabaseClient.auth.signInWithPassword({
+            email: email,
+            password: password
+        });
+
+        if (error) {
+            throw error;
+        }
+
+        let username = email.split('@')[0];
+        if (data.user && data.user.user_metadata && data.user.user_metadata.full_name) {
+            username = data.user.user_metadata.full_name;
+        }
+
+        // تخزين مفاتيح الجلسة لتتطابق تماماً مع نظام الملف الشخصي
+        localStorage.setItem("webchat_username", username);
+        localStorage.setItem("webchat_email", email);
+        if (data.user) {
+            localStorage.setItem("user_id", data.user.id);
+        }
+
+        showLoader(false);
+        alert("أهلاً بك مجدداً في منصة الألعاب الفخمة!");
+        window.location.href = "profile.html";
+
+    } catch (err) {
+        showLoader(false);
+        console.error("خطأ دخول:", err);
+        alert(translateSupabaseError(err.message));
+    }
+}

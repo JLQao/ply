@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>WebChat - الملف الشخصي الملكي</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/profile.css">
+    <style>
+        .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 15px 0; text-align: center; }
+        .stat-box { background: #131b2e; border: 1px solid rgba(197, 160, 89, 0.2); border-radius: 12px; padding: 10px; cursor: pointer; transition: 0.2s; }
+        .stat-box:hover { border-color: var(--gold); }
+        .stat-box span { display: block; font-size: 16px; font-weight: bold; color: var(--gold); }
+        .stat-box small { font-size: 11px; color: #94a3b8; }
+        .gifts-section { background: #131b2e; border: 1px solid rgba(197, 160, 89, 0.3); border-radius: 15px; padding: 15px; margin-top: 15px; }
+        .gifts-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; color: #f3e5ab; font-size: 14px; font-weight: bold; }
+        .gifts-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+        .gift-item { background: #1a233a; border: 1px solid #374151; border-radius: 10px; padding: 6px; text-align: center; }
+        .gift-item img { width: 40px; height: 40px; object-fit: contain; margin-bottom: 4px; }
+        .gift-item span { font-size: 9px; color: #94a3b8; display: block; }
+        .contact-btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 12px; border-radius: 10px; text-decoration: none; font-weight: bold; font-size: 14px; margin-bottom: 10px; transition: 0.3s; }
+        .btn-whatsapp { background: #25d366; color: #fff; }
+        .btn-telegram { background: #0088cc; color: #fff; }
+        .btn-instagram { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); color: #fff; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: #131b2e; border: 1px solid var(--gold); border-radius: 15px; width: 90%; max-width: 400px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #374151; padding-bottom: 10px; color: var(--gold); }
+        .close-btn { background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; }
+        .modal-body input { width: 100%; padding: 12px; background: #1a233a; border: 1px solid #374151; color: #fff; border-radius: 8px; margin-bottom: 10px; outline: none; }
+    </style>
+</head>
+<body>
+
+    <div class="fade-in">
+        <!-- الشريط العلوي -->
+        <header class="top-header">
+            <div class="user-balance" onclick="openRechargeModal()" style="cursor: pointer;" title="شحن الرصيد والتواصل">
+                <i class="fa-solid fa-coins" style="color: var(--gold);"></i>
+                <span id="top-coin-balance">0</span> <span style="font-size: 11px; opacity: 0.8;">شحن (+)</span>
+            </div>
+            
+            <div class="platform-brand">
+                <img src="https://images.unsplash.com/photo-1579783902614-a3fb3927b675?auto=format&fit=crop&w=150&q=80" alt="Logo" class="platform-logo-img">
+                <span class="platform-title">WebChat</span>
+            </div>
+
+            <div class="header-actions">
+                <a href="main.html" class="support-icon-btn" title="الرئيسية" style="color: var(--gold); font-size: 20px; text-decoration: none;">
+                    <i class="fa-solid fa-house"></i>
+                </a>
+            </div>
+        </header>
+
+        <!-- المحتوى الرئيسي -->
+        <main class="main-content">
+            
+            <!-- بطاقة البروفايل الكبرى -->
+            <div class="profile-hero-card">
+                <div class="avatar-container" style="position: relative;">
+                    <img id="profile-avatar-img" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" alt="Avatar" class="profile-avatar">
+                </div>
+
+                <h2 id="profile-display-name">جاري جلب البيانات...</h2>
+                <p id="profile-username">@username</p>
+                
+                <!-- الإحصائيات -->
+                <div class="stats-row" style="width: 100%;">
+                    <div class="stat-box" onclick="alert('قسم الزوار موثق برمجياً')">
+                        <span id="visitors-count">0</span>
+                        <small>الزوار</small>
+                    </div>
+                    <div class="stat-box" onclick="openFollowersList()">
+                        <span id="followers-count">0</span>
+                        <small>المتابعين</small>
+                    </div>
+                    <div class="stat-box" onclick="openFollowingList()">
+                        <span id="following-count">0</span>
+                        <small>أتابعهم</small>
+                    </div>
+                </div>
+
+                <button class="action-btn-gold" onclick="openAvatarModal()" style="margin-top: 5px;">
+                    <i class="fa-solid fa-image"></i> تغيير الصورة الشخصية (برابط)
+                </button>
+                
+                <button class="action-btn-gold" onclick="openRechargeModal()" style="background: #1f2937; border: 1px solid var(--gold); margin-top: 8px;">
+                    <i class="fa-solid fa-wallet"></i> شحن الرصيد وتواصل المطور
+                </button>
+            </div>
+
+            <!-- تفاصيل الحساب -->
+            <div class="profile-details-grid">
+                
+                <div class="detail-card">
+                    <div class="detail-info">
+                        <div class="detail-icon"><i class="fa-solid fa-id-badge"></i></div>
+                        <div class="detail-text">
+                            <h4>رقم الآي دي التسلسلي (ID)</h4>
+                            <span id="profile-id">#--</span>
+                        </div>
+                    </div>
+                    <span style="font-size: 11px; color: var(--gold); background: rgba(242,201,76,0.1); padding: 4px 8px; border-radius: 8px;">رسمي</span>
+                </div>
+
+                <div class="detail-card">
+                    <div class="detail-info">
+                        <div class="detail-icon"><i class="fa-solid fa-gem"></i></div>
+                        <div class="detail-text">
+                            <h4>قسم ترقية الحساب</h4>
+                            <span id="profile-membership">عادي (Standard)</span>
+                        </div>
+                    </div>
+                    <button class="detail-action-btn" onclick="openUpgradeModal()">ترقية VIP</button>
+                </div>
+
+                <div class="detail-card">
+                    <div class="detail-info">
+                        <div class="detail-icon"><i class="fa-solid fa-user-pen"></i></div>
+                        <div class="detail-text">
+                            <h4>الاسم الظاهر</h4>
+                            <span id="profile-name-val">---</span>
+                        </div>
+                    </div>
+                    <button class="detail-action-btn" onclick="openNameModal()">تغيير</button>
+                </div>
+
+                <div class="detail-card">
+                    <div class="detail-info">
+                        <div class="detail-icon"><i class="fa-solid fa-lock"></i></div>
+                        <div class="detail-text">
+                            <h4>كلمة المرور</h4>
+                            <span>••••••••</span>
+                        </div>
+                    </div>
+                    <button class="detail-action-btn" onclick="openPasswordModal()">تغيير</button>
+                </div>
+
+                <div class="detail-card">
+                    <div class="detail-info">
+                        <div class="detail-icon"><i class="fa-solid fa-envelope"></i></div>
+                        <div class="detail-text">
+                            <h4>البريد الإلكتروني</h4>
+                            <span id="profile-email-val">---</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- قسم الهدايا المستلمة -->
+            <div class="gifts-section">
+                <div class="gifts-header">
+                    <span><i class="fa-solid fa-gift" style="color: var(--gold); margin-left: 5px;"></i> الهدايا المستلمة</span>
+                    <span id="gifts-count" style="font-size: 12px; color: var(--gold);">0 هدية</span>
+                </div>
+                <div id="gifts-grid-container" class="gifts-grid">
+                    <div style="grid-column: span 4; text-align: center; color: #94a3b8; font-size: 11px; padding: 10px;">
+                        لا توجد هدايا مستلمة حتى الآن.
+                    </div>
+                </div>
+            </div>
+
+            <!-- زر تسجيل الخروج -->
+            <div class="logout-btn-container" style="margin-top: 20px;">
+                <button class="logout-btn" onclick="logoutUser()" style="width: 100%; padding: 12px; background: #dc2626; color: #fff; border: none; border-radius: 10px; font-weight: bold; cursor: pointer;">
+                    <i class="fa-solid fa-right-from-bracket"></i> تسجيل الخروج من الحساب
+                </button>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- نافذة قائمة المتابعين والمتابعَعين -->
+    <div id="list-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="list-modal-title">القائمة</h3>
+                <button class="close-btn" onclick="closeListModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="list-modal-body" style="max-height: 250px; overflow-y: auto;">
+                <p style="text-align: center; color: #94a3b8; font-size: 12px;">لا يوجد أي عناصر هنا حالياً.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة تغيير الصورة برابط -->
+    <div id="avatar-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>تغيير صورة البروفايل</h3>
+                <button class="close-btn" onclick="closeAvatarModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 12px; color: #94a3b8; margin-bottom: 10px;">ضع رابط الصورة المباشر هنا:</p>
+                <input type="text" id="avatar-url-input" placeholder="https://example.com/image.jpg">
+                <button class="action-btn-gold" style="width: 100%; padding: 12px; margin-top: 10px; background: var(--gold); border: none; border-radius: 8px; font-weight: bold; cursor: pointer;" onclick="updateAvatarByUrl()">حفظ الصورة الجديدة</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة شحن الرصيد وتواصل المطور -->
+    <div id="recharge-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>شحن الرصيد وتواصل المطور</h3>
+                <button class="close-btn" onclick="closeRechargeModal()">&times;</button>
+            </div>
+            <div class="modal-body" style="text-align: center;">
+                <p style="color: #94a3b8; font-size: 13px; margin-bottom: 15px;">لشحن الرصيد أو التواصل مع إدارة ومطور المنصة:</p>
+                <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px;">
+                    <a href="https://wa.me/966537240310" target="_blank" class="contact-btn btn-whatsapp">
+                        <i class="fa-brands fa-whatsapp"></i> واتساب (+966537240310)
+                    </a>
+                    <a href="https://t.me/kggggo" target="_blank" class="contact-btn btn-telegram">
+                        <i class="fa-brands fa-telegram"></i> تيليجرام (@kggggo)
+                    </a>
+                    <a href="https://www.instagram.com/rle.z" target="_blank" class="contact-btn btn-instagram">
+                        <i class="fa-brands fa-instagram"></i> انستغرام (@rle.z)
+                    </a>
+                </div>
+                <hr style="border-color: #374151; margin: 15px 0;">
+                <!-- زر الـ 100 كوينز المجانية كل 24 ساعة -->
+                <button class="action-btn-gold" style="width: 100%; padding: 10px; background: var(--gold); border: none; border-radius: 8px; font-weight: bold; cursor: pointer;" onclick="claimDailyCoins()">🎁 استلام 100 كوينز مجانية (كل 24 ساعة)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة ترقية الحساب -->
+    <div id="upgrade-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>ترقية الحساب (VIP)</h3>
+                <button class="close-btn" onclick="closeUpgradeModal()">&times;</button>
+            </div>
+            <div class="modal-body" style="text-align: center;">
+                <p style="color: #94a3b8; font-size: 13px; margin-bottom: 15px;">قريباً سيتم تفعيل الباقات الملكية.</p>
+                <button class="action-btn-gold" style="width: 100%; padding: 12px; background: var(--gold); border: none; border-radius: 8px; font-weight: bold; cursor: pointer;" onclick="closeUpgradeModal()">حسناً</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة تعديل الاسم -->
+    <div id="name-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>تغيير الاسم الظاهر</h3>
+                <button class="close-btn" onclick="closeNameModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="text" id="new-name-input" placeholder="اكتب الاسم الجديد...">
+                <button class="action-btn-gold" style="width: 100%; padding: 12px; margin-top: 10px; background: var(--gold); border: none; border-radius: 8px; font-weight: bold; cursor: pointer;" onclick="updateDisplayName()">حفظ الاسم</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة تغيير كلمة المرور -->
+    <div id="password-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>تغيير كلمة المرور</h3>
+                <button class="close-btn" onclick="closePasswordModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="password" id="new-password-input" placeholder="كلمة المرور الجديدة (6 أحرف على الأقل)...">
+                <button class="action-btn-gold" style="width: 100%; padding: 12px; margin-top: 10px; background: var(--gold); border: none; border-radius: 8px; font-weight: bold; cursor: pointer;" onclick="updatePassword()">حفظ كلمة المرور</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- الشريط السفلي -->
+    <nav class="bottom-nav">
+        <a href="main.html" class="nav-item">
+            <i class="fa-solid fa-house"></i>
+            <span>الرئيسية</span>
+        </a>
+        <a href="top.html" class="nav-item">
+            <i class="fa-solid fa-trophy"></i>
+            <span>التوب</span>
+        </a>
+        <a href="search.html" class="nav-item">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <span>البحث</span>
+        </a>
+        <a href="notifications.html" class="nav-item">
+            <i class="fa-solid fa-bell"></i>
+            <span>الإشعارات</span>
+        </a>
+        <a href="membership.html" class="nav-item">
+            <i class="fa-solid fa-gem"></i>
+            <span>العضوية</span>
+        </a>
+        <a href="profile.html" class="nav-item active">
+            <i class="fa-solid fa-user"></i>
+            <span>حسابي</span>
+        </a>
+    </nav>
+
+    <!-- Supabase والسكربت الشامل الكامل -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase.js"></script>
+    <script>
+        let currentUserData = null;
+        let followersList = [];
+        let followingList = [];
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            try {
+                const { data: { user }, error: authError } = await window.supabaseClient.auth.getUser();
+
+                if (authError || !user) {
+                    alert("يرجى تسجيل الدخول أولاً!");
+                    window.location.href = "index.html";
+                    return;
+                }
+
+                let { data: profile, error: profileError } = await window.supabaseClient
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', user.id)
+                    .maybeSingle();
+
+                if (!profile) {
+                    const defaultName = user.user_metadata?.full_name || user.email.split('@')[0];
+                    const { data: newProfile } = await window.supabaseClient
+                        .from('profiles')
+                        .insert([{ id: user.id, username: defaultName, display_name: defaultName, email: user.email, coins: 1000 }])
+                        .select()
+                        .maybeSingle();
+                    profile = newProfile;
+                }
+
+                currentUserData = profile || {
+                    id: user.id,
+                    display_name: user.user_metadata?.full_name || user.email.split('@')[0],
+                    username: user.email.split('@')[0],
+                    email: user.email,
+                    coins: 1000,
+                    membership_type: 'عادي (Standard)'
+                };
+
+                // تعبئة الواجهة بالبيانات
+                document.getElementById("profile-display-name").innerText = currentUserData.display_name || currentUserData.username || "مستخدم فخم";
+                document.getElementById("profile-name-val").innerText = currentUserData.display_name || currentUserData.username || "---";
+                document.getElementById("profile-username").innerText = `@${currentUserData.username || "vip"}`;
+                document.getElementById("profile-email-val").innerText = currentUserData.email || user.email;
+                document.getElementById("top-coin-balance").innerText = Number(currentUserData.coins || 0).toLocaleString();
+                document.getElementById("profile-id").innerText = `#${currentUserData.id ? currentUserData.id.slice(0, 6) : '1'}`;
+
+                if (currentUserData.avatar_url) {
+                    document.getElementById("profile-avatar-img").src = currentUserData.avatar_url;
+                }
+                if (currentUserData.membership_type) {
+                    document.getElementById("profile-membership").innerText = currentUserData.membership_type;
+                }
+
+                await fetchUserFollows(currentUserData.id);
+                await loadUserGifts(currentUserData.id);
+
+            } catch (err) {
+                console.error("خطأ في جلب بيانات البروفايل:", err);
+            }
+        });
+
+        async function fetchUserFollows(userId) {
+            try {
+                const { data: followers } = await window.supabaseClient
+                    .from('follows')
+                    .select('follower_id, profiles:follower_id(id, username, display_name, avatar_url)')
+                    .eq('following_id', userId);
+
+                if (followers) {
+                    followersList = followers;
+                    document.getElementById("followers-count").innerText = followersList.length;
+                }
+
+                const { data: following } = await window.supabaseClient
+                    .from('follows')
+                    .select('following_id, profiles:following_id(id, username, display_name, avatar_url)')
+                    .eq('follower_id', userId);
+
+                if (following) {
+                    followingList = following;
+                    document.getElementById("following-count").innerText = followingList.length;
+                }
+            } catch (e) {
+                console.log("جدول المتابعين غير مضاف بعد.");
+            }
+        }
+
+        async function loadUserGifts(userId) {
+            try {
+                const { data: giftsData } = await window.supabaseClient
+                    .from('user_gifts')
+                    .select('*')
+                    .eq('receiver_id', userId);
+
+                if (giftsData && giftsData.length > 0) {
+                    document.getElementById("gifts-count").innerText = giftsData.length + " هدية";
+                    let gridHTML = "";
+                    giftsData.forEach(g => {
+                        gridHTML += `
+                            <div class="gift-item">
+                                <img src="${g.gift_image_url || 'https://cdn-icons-png.flaticon.com/512/4213/4213958.png'}" alt="Gift">
+                                <span>${g.gift_name || 'هدية ملكية'}</span>
+                            </div>
+                        `;
+                    });
+                    document.getElementById("gifts-grid-container").innerHTML = gridHTML;
+                }
+            } catch (e) {
+                console.log("جدول الهدايا غير مضاف بعد.");
+            }
+        }
+
+        function openFollowersList() {
+            document.getElementById("list-modal-title").innerText = "قائمة المتابعين";
+            let bodyHTML = "";
+            if (followersList.length === 0) {
+                bodyHTML = `<p style="text-align: center; color: #94a3b8; font-size: 12px; padding: 15px;">لا يوجد متابعون حتى الآن.</p>`;
+            } else {
+                followersList.forEach(item => {
+                    const p = item.profiles || {};
+                    bodyHTML += `
+                        <div style="display: flex; align-items: center; gap: 10px; padding: 8px; border-bottom: 1px solid #1f2937;">
+                            <img src="${p.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80'}" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover;">
+                            <div>
+                                <div style="font-size: 13px; color: #fff; font-weight: bold;">${p.display_name || p.username || 'مستخدم'}</div>
+                                <div style="font-size: 11px; color: #94a3b8;">@${p.username || 'user'}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            document.getElementById("list-modal-body").innerHTML = bodyHTML;
+            document.getElementById("list-modal").style.display = "flex";
+        }
+
+        function openFollowingList() {
+            document.getElementById("list-modal-title").innerText = "الأشخاص الذين أتابعهم";
+            let bodyHTML = "";
+            if (followingList.length === 0) {
+                bodyHTML = `<p style="text-align: center; color: #94a3b8; font-size: 12px; padding: 15px;">أنت لا تتابع أي شخص حتى الآن.</p>`;
+            } else {
+                followingList.forEach(item => {
+                    const p = item.profiles || {};
+                    bodyHTML += `
+                        <div style="display: flex; align-items: center; gap: 10px; padding: 8px; border-bottom: 1px solid #1f2937;">
+                            <img src="${p.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80'}" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover;">
+                            <div>
+                                <div style="font-size: 13px; color: #fff; font-weight: bold;">${p.display_name || p.username || 'مستخدم'}</div>
+                                <div style="font-size: 11px; color: #94a3b8;">@${p.username || 'user'}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            document.getElementById("list-modal-body").innerHTML = bodyHTML;
+            document.getElementById("list-modal").style.display = "flex";
+        }
+
+        // دوال التحكم بالوافذ المنبثقة
+        function closeListModal() { document.getElementById("list-modal").style.display = "none"; }
+        function openAvatarModal() { document.getElementById("avatar-modal").style.display = "flex"; }
+        function closeAvatarModal() { document.getElementById("avatar-modal").style.display = "none"; }
+        function openRechargeModal() { document.getElementById("recharge-modal").style.display = "flex"; }
+        function closeRechargeModal() { document.getElementById("recharge-modal").style.display = "none"; }
+        function openUpgradeModal() { document.getElementById("upgrade-modal").style.display = "flex"; }
+        function closeUpgradeModal() { document.getElementById("upgrade-modal").style.display = "none"; }
+        function openNameModal() { document.getElementById("name-modal").style.display = "flex"; }
+        function closeNameModal() { document.getElementById("name-modal").style.display = "none"; }
+        function openPasswordModal() { document.getElementById("password-modal").style.display = "flex"; }
+        function closePasswordModal() { document.getElementById("password-modal").style.display = "none"; }
+
+        // دالة تحديث الصورة برابط
+        async function updateAvatarByUrl() {
+            const urlInput = document.getElementById("avatar-url-input").value.trim();
+            if (!urlInput) { alert("يرجى وضع رابط صحيح للصورة!"); return; }
+
+            const { error } = await window.supabaseClient
+                .from('profiles')
+                .update({ avatar_url: urlInput })
+                .eq('id', currentUserData.id);
+
+            if (error) alert("خطأ: " + error.message);
+            else { alert("تم تحديث الصورة بنجاح!"); location.reload(); }
+        }
+
+        // دالة استلام 100 كوينز مجانية كل 24 ساعة
+        async function claimDailyCoins() {
+            const lastClaimKey = `last_coin_claim_${currentUserData.id}`;
+            const lastClaimTime = localStorage.getItem(lastClaimKey);
+            const now = new Date().getTime();
+            const cooldownTime = 24 * 60 * 60 * 1000; // 24 ساعة بالمللي ثانية
+
+            if (lastClaimTime && (now - lastClaimTime < cooldownTime)) {
+                const remainingHours = Math.ceil((cooldownTime - (now - lastClaimTime)) / (1000 * 60 * 60));
+                alert(`عذراً يا أسطورة! يمكنك استلام الـ 100 كوينز المجانية القادمة بعد ${remainingHours} ساعة تقريباً.`);
+                return;
+            }
+
+            const newCoins = (Number(currentUserData.coins) || 0) + 100;
+            const { error } = await window.supabaseClient
+                .from('profiles')
+                .update({ coins: newCoins })
+                .eq('id', currentUserData.id);
+
+            if (error) {
+                alert("خطأ أثناء استلام الكوينز: " + error.message);
+            } else {
+                localStorage.setItem(lastClaimKey, now);
+                alert("🎉 مبروك يا وحش! تم إضافة 100 كوينز مجانية إلى رصيدك بنجاح!");
+                location.reload();
+            }
+        }
+
+        // دالة تغيير الاسم الفعلي
+        async function updateDisplayName() {
+            const newName = document.getElementById("new-name-input").value.trim();
+            if (!newName) { alert("يرجى كتابة اسم صحيح!"); return; }
+
+            try {
+                const { error } = await window.supabaseClient
+                    .from('profiles')
+                    .update({ display_name: newName, username: newName })
+                    .eq('id', currentUserData.id);
+
+                if (error) throw error;
+
+                await window.supabaseClient.auth.updateUser({
+                    data: { full_name: newName }
+                });
+
+                alert("تم تحديث الاسم بنجاح يا أسطورة!");
+                location.reload();
+            } catch (err) {
+                alert("خطأ أثناء تحديث الاسم: " + err.message);
+            }
+        }
+
+        // دالة تغيير كلمة المرور الفعلي
+        async function updatePassword() {
+            const newPass = document.getElementById("new-password-input").value.trim();
+            if (!newPass || newPass.length < 6) { 
+                alert("يجب أن تكون كلمة المرور 6 أحرف أو أرقام على الأقل!"); 
+                return; 
+            }
+
+            try {
+                const { error } = await window.supabaseClient.auth.updateUser({
+                    password: newPass
+                });
+
+                if (error) throw error;
+
+                await window.supabaseClient
+                    .from('profiles')
+                    .update({ password: newPass })
+                    .eq('id', currentUserData.id);
+
+                alert("تم تغيير كلمة المرور بنجاح!");
+                closePasswordModal();
+                document.getElementById("new-password-input").value = "";
+            } catch (err) {
+                alert("خطأ أثناء تغيير كلمة المرور: " + err.message);
+            }
+        }
+
+        // تسجيل الخروج
+        async function logoutUser() {
+            await window.supabaseClient.auth.signOut();
+            localStorage.clear();
+            window.location.href = "index.html";
+        }
+    </script>
+</body>
+</html>

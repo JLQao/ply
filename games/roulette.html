@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🎡 عجلة الحظ الملكية - VIP</title>
+    <style>
+        :root {
+            --bg: #07050d;
+            --panel: rgba(22, 16, 35, 0.92);
+            --gold: #f7d070;
+            --gold-dark: #c8963e;
+            --red: #ff2a5f;
+            --green: #00f0b5;
+            --border: rgba(247, 208, 112, 0.3);
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0; padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            background: radial-gradient(circle at center, #1b0d30 0%, #050308 100%);
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 12px;
+            overflow-x: hidden;
+        }
+
+        .card {
+            background: var(--panel);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 28px;
+            padding: 22px 18px;
+            width: 100%;
+            max-width: 460px;
+            text-align: center;
+            box-shadow: 0 25px 65px rgba(0, 0, 0, 0.9), 0 0 40px rgba(247, 208, 112, 0.15);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--gold), transparent);
+        }
+
+        /* الرصيد والعنوان */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 0 5px;
+        }
+
+        .balance-box {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 8px 14px;
+            font-size: 15px;
+            color: var(--gold);
+            font-weight: 900;
+            box-shadow: inset 0 0 10px rgba(247, 208, 112, 0.1);
+        }
+
+        h1 {
+            font-size: 22px;
+            font-weight: 900;
+            background: linear-gradient(180deg, #ffffff 30%, var(--gold) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* حاوية العجلة والمؤشر */
+        .wheel-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin: 15px auto;
+        }
+
+        /* السهم العلوي الدقيق */
+        .wheel-pointer {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 14px solid transparent;
+            border-right: 14px solid transparent;
+            border-top: 26px solid var(--red);
+            z-index: 10;
+            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.8));
+        }
+
+        /* الكانفاس الخاص بالعجلة */
+        canvas#wheelCanvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 5px solid var(--gold);
+            box-shadow: 0 0 25px rgba(247, 208, 112, 0.3), inset 0 0 15px rgba(0, 0, 0, 0.8);
+            transition: transform 5s cubic-bezier(0.15, 0.9, 0.2, 1);
+            transform: rotate(0deg);
+        }
+
+        /* المركز */
+        .wheel-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50px;
+            height: 50px;
+            background: radial-gradient(circle, var(--gold) 0%, var(--gold-dark) 100%);
+            border-radius: 50%;
+            border: 3px solid #fff;
+            box-shadow: 0 0 15px rgba(0,0,0,0.8);
+            z-index: 5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            pointer-events: none;
+        }
+
+        /* رقائق المراهنة */
+        .chips-container {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .chip {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid var(--border);
+            padding: 8px 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: bold;
+            color: #fff;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .chip.active {
+            background: var(--gold);
+            color: #000;
+            border-color: #fff;
+            box-shadow: 0 0 10px rgba(247, 208, 112, 0.5);
+        }
+
+        /* بطاقات اختيار الصور */
+        .bet-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .bet-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 14px;
+            padding: 8px 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s;
+        }
+
+        .bet-card.selected {
+            border-color: var(--gold);
+            background: rgba(247, 208, 112, 0.12);
+            box-shadow: 0 0 12px rgba(247, 208, 112, 0.2);
+        }
+
+        .bet-card img {
+            width: 38px;
+            height: 38px;
+            margin-bottom: 2px;
+        }
+
+        .bet-card .name {
+            font-size: 11px;
+            color: #ddd;
+        }
+
+        .bet-card .mult {
+            font-size: 10px;
+            color: var(--gold);
+            font-weight: bold;
+        }
+
+        .bet-badge {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: var(--red);
+            color: #fff;
+            font-size: 10px;
+            font-weight: bold;
+            padding: 2px 5px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .bet-card.selected .bet-badge {
+            display: block;
+        }
+
+        /* زر التشغيل */
+        button.spin-btn {
+            width: 100%;
+            padding: 15px;
+            border-radius: 18px;
+            border: none;
+            background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+            color: #0d0814;
+            font-size: 16px;
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(247, 208, 112, 0.3);
+            transition: all 0.2s;
+        }
+
+        button.spin-btn:active { transform: scale(0.97); }
+        button.spin-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        .status-msg {
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            min-height: 20px;
+            color: var(--gold);
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div class="header">
+        <h1>🎡 عجلة الحظ الملكية</h1>
+        <div class="balance-box">💰 <span id="balance" data-game-balance>0</span>$</div>
+    </div>
+
+    <!-- عجلة الحظ والمؤشر -->
+    <div class="wheel-container">
+        <div class="wheel-pointer"></div>
+        <canvas id="wheelCanvas" width="600" height="600"></canvas>
+        <div class="wheel-center">👑</div>
+    </div>
+
+    <div class="status-msg" id="statusMsg">اختر الصورة والمبلغ ثم أدر عجلة الحظ!</div>
+
+    <!-- تحديد المبلغ -->
+    <div style="font-size: 12px; color: #a497c6; margin: 6px 0; text-align: right;">حدد مبلغ الرهان:</div>
+    <div class="chips-container">
+        <div class="chip active" onclick="selectChip(10, this)">10$</div>
+        <div class="chip" onclick="selectChip(50, this)">50$</div>
+        <div class="chip" onclick="selectChip(100, this)">100$</div>
+        <div class="chip" onclick="selectChip(250, this)">250$</div>
+        <div class="chip" onclick="selectChip(500, this)">500$</div>
+    </div>
+
+    <!-- شبكة الاختيار -->
+    <div style="font-size: 12px; color: #a497c6; margin-bottom: 6px; text-align: right;">اختر صورتك المفضلّة (يمكنك اختيار أكثر من صورة):</div>
+    <div class="bet-grid" id="betGrid"></div>
+
+    <button class="spin-btn" id="spinBtn" onclick="spinWheel()">تدوير عجلة الحظ 🎡</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../js/supabase.js"></script><script src="../js/game-bridge.js"></script><script>
+    const items = [
+        { id: 'king', name: 'الملك', mult: 3.0, color: '#4a154b', imgUrl: 'https://cdn-icons-png.flaticon.com/512/4140/4140048.png' },
+        { id: 'dragon', name: 'التنين', mult: 2.5, color: '#8b0000', imgUrl: 'https://cdn-icons-png.flaticon.com/512/1152/1152821.png' },
+        { id: 'wizard', name: 'الساحر', mult: 2.0, color: '#1d3557', imgUrl: 'https://cdn-icons-png.flaticon.com/512/3069/3069172.png' },
+        { id: 'knight', name: 'الفارس', mult: 1.5, color: '#2a9df4', imgUrl: 'https://cdn-icons-png.flaticon.com/512/2907/2907248.png' },
+        { id: 'bot', name: 'الروبوت', mult: 1.0, color: '#00f0b5', imgUrl: 'https://cdn-icons-png.flaticon.com/512/4712/4712109.png' },
+        { id: 'ninja', name: 'النينجا', mult: 2.0, color: '#b8860b', imgUrl: 'https://cdn-icons-png.flaticon.com/512/1083/1083512.png' }
+    ];
+
+    let loadedImages = {};
+    let userBalance = 0;
+    let selectedChip = 10;
+    let activeBets = {};
+    let isSpinning = false;
+    let currentRotation = 0;
+
+    // تحميل الصور مسبقاً للكانفاس
+    function preloadImages(callback) {
+        let loaded = 0;
+        items.forEach(item => {
+            const img = new Image();
+            img.crossOrigin = "anonymous";
+            img.src = item.imgUrl;
+            img.onload = () => {
+                loadedImages[item.id] = img;
+                loaded++;
+                if (loaded === items.length) callback();
+            };
+        });
+    }
+
+    let audioCtx = null;
+    function getAudioContext() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        return audioCtx;
+    }
+
+    function playTick() {
+        const ctx = getAudioContext();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(450, ctx.currentTime);
+        gain.gain.setValueAtTime(0.08, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.03);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.03);
+    }
+
+    function playWinSound() {
+        const ctx = getAudioContext();
+        const notes = [523.25, 659.25, 783.99, 1046.50];
+        notes.forEach((freq, i) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.08);
+            gain.gain.setValueAtTime(0.1, ctx.currentTime + i * 0.08);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.08 + 0.25);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(ctx.currentTime + i * 0.08);
+            osc.stop(ctx.currentTime + i * 0.08 + 0.25);
+        });
+    }
+
+    // رسم العجلة بدقة الكانفاس
+    function drawWheel() {
+        const canvas = document.getElementById('wheelCanvas');
+        const ctx = canvas.getContext('2d');
+        const numSlices = items.length;
+        const sliceAngle = (2 * Math.PI) / numSlices;
+        const radius = canvas.width / 2;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        items.forEach((item, i) => {
+            const startAngle = i * sliceAngle;
+            const endAngle = startAngle + sliceAngle;
+
+            // رسم القطاع
+            ctx.beginPath();
+            ctx.moveTo(radius, radius);
+            ctx.arc(radius, radius, radius, startAngle, endAngle);
+            ctx.closePath();
+            ctx.fillStyle = item.color;
+            ctx.fill();
+            ctx.strokeStyle = '#f7d070';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            // رسم المحتوى (الصورة والنص)
+            ctx.save();
+            ctx.translate(radius, radius);
+            ctx.rotate(startAngle + sliceAngle / 2);
+
+            // رسم الصورة
+            if (loadedImages[item.id]) {
+                ctx.drawImage(loadedImages[item.id], radius * 0.55, -35, 70, 70);
+            }
+
+            // رسم النص
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 22px Segoe UI';
+            ctx.textAlign = 'center';
+            ctx.fillText(`x${item.mult}`, radius * 0.62, 55);
+
+            ctx.restore();
+        });
+    }
+
+    function initUI() {
+        const betGrid = document.getElementById('betGrid');
+        betGrid.innerHTML = '';
+        items.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'bet-card';
+            card.id = `card-${item.id}`;
+            card.onclick = () => toggleBet(item.id);
+            card.innerHTML = `
+                <div class="bet-badge" id="badge-${item.id}">0$</div>
+                <img src="${item.imgUrl}" alt="${item.name}">
+                <div class="name">${item.name}</div>
+                <div class="mult">x${item.mult}</div>
+            `;
+            betGrid.appendChild(card);
+        });
+
+        preloadImages(() => {
+            drawWheel();
+        });
+    }
+
+    function selectChip(amount, el) {
+        document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+        el.classList.add('active');
+        selectedChip = amount;
+    }
+
+    function toggleBet(itemId) {
+        if (isSpinning) return;
+
+        if (activeBets[itemId]) {
+            delete activeBets[itemId];
+            document.getElementById(`card-${itemId}`).classList.remove('selected');
+        } else {
+            activeBets[itemId] = selectedChip;
+            document.getElementById(`card-${itemId}`).classList.add('selected');
+            document.getElementById(`badge-${itemId}`).innerText = selectedChip + '$';
+        }
+        updateStatus();
+    }
+
+    function updateStatus() {
+        const totalBet = Object.values(activeBets).reduce((a, b) => a + b, 0);
+        document.getElementById('statusMsg').innerText = totalBet > 0 
+            ? `مجموع الرهانات الحالية: ${totalBet}$` 
+            : 'اختر الصورة والمبلغ ثم أدر عجلة الحظ!';
+    }
+
+    async function spinWheel() {
+        const totalBet = Object.values(activeBets).reduce((a, b) => a + b, 0);
+
+        if (totalBet === 0) {
+            alert('الرجاء اختيار صورة واحدة على الأقل للمراهنة عليها!');
+            return;
+        }
+
+        const remaining = await gameBridge.debit('roulette', totalBet);
+        if (remaining === null) return;
+        userBalance = remaining;
+        isSpinning = true;
+        document.getElementById('spinBtn').disabled = true;
+        document.getElementById('balance').innerText = userBalance;
+        // اختيار النتيجة العشوائية
+        const winningIndex = Math.floor(Math.random() * items.length);
+        const winningItem = items[winningIndex];
+
+        // الحسابات الرياضية الجبرية الدقيقة 100%:
+        // السهم العلوي يقع عند الزاوية 270 درجة (-90) في الكانفاس
+        const sliceDeg = 360 / items.length; // 60 deg
+        const targetCenterDeg = (winningIndex * sliceDeg) + (sliceDeg / 2);
+        
+        // حساب الدوران المطلوب لجعل منتصف القطاع ينطبق مع السهم العلوي تماماً
+        const targetRotationInCycle = (270 - targetCenterDeg + 360) % 360;
+
+        const currentCycle = currentRotation % 360;
+        let delta = targetRotationInCycle - currentCycle;
+        if (delta <= 0) delta += 360;
+
+        // إضافة 5 دورات كاملة للتشويق (1800 deg)
+        currentRotation += delta + (360 * 5);
+
+        const canvas = document.getElementById('wheelCanvas');
+        canvas.style.transform = `rotate(${currentRotation}deg)`;
+
+        let soundInterval = setInterval(() => {
+            playTick();
+        }, 130);
+
+        setTimeout(() => clearInterval(soundInterval), 4200);
+
+        setTimeout(async () => {
+            isSpinning = false;
+            document.getElementById('spinBtn').disabled = false;
+
+            if (activeBets[winningItem.id]) {
+                const winAmount = Math.floor(activeBets[winningItem.id] * winningItem.mult);
+                const totalReturn = activeBets[winningItem.id] + winAmount;
+                await gameBridge.credit('roulette', totalReturn);
+                userBalance += totalReturn;
+                document.getElementById('balance').innerText = userBalance;
+
+                playWinSound();
+                document.getElementById('statusMsg').innerHTML = 
+                    `<span style="color:var(--green)">🎉 مبروك! وقفت العجلة على ${winningItem.name} وربحت ${winAmount}$!</span>`;
+            } else {
+                document.getElementById('statusMsg').innerHTML = 
+                    `<span style="color:var(--red)">❌ وقفت العجلة على ${winningItem.name}، حظ أوفر الجولة القادمة!</span>`;
+            }
+        }, 5000);
+    }
+
+    initUI();
+
+    gameBridge.ready().catch(()=>{});
+</script>
+
+<a href="../app.html#games" class="webchat-back">← العودة إلى WebChat</a><style>.webchat-back{position:fixed;top:12px;right:12px;z-index:9999;color:#f7d070;background:#101722dd;border:1px solid #f7d07066;border-radius:10px;padding:8px 12px;text-decoration:none;font:700 12px system-ui}</style></body>
+</html>

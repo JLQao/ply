@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🀄 لعبة الدومينو - 4 لاعبين مع البوتات والشيش</title>
+    <style>
+        :root {
+            --gold: #ffd700;
+            --table-green: #153e2b;
+            --panel-bg: rgba(15, 23, 42, 0.95);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0; padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: #050b14;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 10px;
+            overflow: hidden;
+        }
+
+        .game-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 980px;
+            height: 680px;
+            background: radial-gradient(circle, #1e563b 0%, var(--table-green) 70%, #0b2217 100%);
+            border: 5px solid var(--gold);
+            border-radius: 20px;
+            box-shadow: 0 0 50px rgba(0,0,0,0.9), inset 0 0 80px rgba(0,0,0,0.6);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .modal-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(5, 11, 20, 0.94);
+            backdrop-filter: blur(8px);
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .setup-card {
+            background: var(--panel-bg);
+            border: 2px solid var(--gold);
+            border-radius: 20px;
+            padding: 30px;
+            width: 100%;
+            max-width: 480px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+
+        .setup-card h1 {
+            color: var(--gold);
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .section-label {
+            font-size: 14px;
+            color: #aaa;
+            margin: 15px 0 8px 0;
+            text-align: right;
+        }
+
+        .option-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .opt-btn {
+            background: #1e293b;
+            border: 2px solid #334155;
+            color: #fff;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .opt-btn.active {
+            border-color: var(--gold);
+            background: linear-gradient(135deg, #3a2d0c, #1a1303);
+            color: var(--gold);
+        }
+
+        .start-btn {
+            width: 100%;
+            background: linear-gradient(180deg, #22c55e, #15803d);
+            border: none;
+            color: white;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 900;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        .hud-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.75);
+            padding: 10px 20px;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.3);
+            z-index: 10;
+        }
+
+        .hud-item {
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .hud-item span { color: var(--gold); }
+
+        .board-area {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* حكماء/بوتات الطاولة */
+        .bots-indicators {
+            position: absolute;
+            top: 10px;
+            left: 0; right: 0;
+            display: flex;
+            justify-content: space-around;
+            padding: 0 20px;
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        .bot-badge {
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid #444;
+            padding: 6px 14px;
+            border-radius: 15px;
+            font-size: 12px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .bot-badge.active-turn {
+            border-color: var(--gold);
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+            background: rgba(58, 45, 12, 0.9);
+            color: var(--gold);
+        }
+
+        .player-hand {
+            height: 120px;
+            background: rgba(0, 0, 0, 0.7);
+            border-top: 2px solid rgba(255, 215, 0, 0.3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            overflow-x: auto;
+            z-index: 10;
+        }
+
+        .domino-tile {
+            width: 44px;
+            height: 88px;
+            background: linear-gradient(180deg, #ffffff 0%, #f1efe6 100%);
+            border: 2px solid #222;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.6);
+            cursor: pointer;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .domino-tile:hover {
+            transform: translateY(-10px);
+            border-color: var(--gold);
+        }
+
+        .domino-half {
+            width: 100%;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .domino-line {
+            width: 90%;
+            height: 2px;
+            background: #666;
+        }
+
+        .dot-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            width: 28px;
+            height: 28px;
+        }
+
+        .dot {
+            width: 6px;
+            height: 6px;
+            background: #111;
+            border-radius: 50%;
+            justify-self: center;
+            align-self: center;
+        }
+
+        .draw-btn {
+            position: absolute;
+            bottom: 135px;
+            right: 20px;
+            background: var(--gold);
+            color: #000;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 20px;
+            font-weight: 900;
+            cursor: pointer;
+            display: none;
+            z-index: 20;
+        }
+
+        .status-msg {
+            position: absolute;
+            bottom: 135px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.85);
+            padding: 8px 22px;
+            border-radius: 20px;
+            font-size: 14px;
+            border: 1px solid var(--gold);
+            color: var(--gold);
+            font-weight: bold;
+            text-align: center;
+            z-index: 15;
+        }
+    </style>
+</head>
+<body>
+
+<div class="game-wrapper">
+
+    <div class="modal-overlay" id="setupModal">
+        <div class="setup-card">
+            <h1>🀄 دومينو الشيش (4 لاعبين وبوتات)</h1>
+            
+            <div class="section-label">اختر نظام اللعب:</div>
+            <div class="option-grid">
+                <button class="opt-btn" onclick="setMode(2, this)">👥 ثنائي (1v1)</button>
+                <button class="opt-btn active" onclick="setMode(4, this)">👨‍👩‍👧‍👦 رباعي (2v2 فرق)</button>
+            </div>
+
+            <div class="section-label">حدد قيمة الرهان (لكل لاعب):</div>
+            <div class="option-grid">
+                <button class="opt-btn active" onclick="setBet(50, this)">💵 50 ريال</button>
+                <button class="opt-btn" onclick="setBet(100, this)">💵 100 ريال</button>
+                <button class="opt-btn" onclick="setBet(250, this)">💵 250 ريال</button>
+                <button class="opt-btn" onclick="setBet(500, this)">💵 500 ريال</button>
+            </div>
+
+            <div style="margin-top: 10px; font-size: 13px; color: #aaa;">
+                الجائزة الكلية: <span id="potPreview" style="color:var(--gold); font-weight:bold;">200</span> ريال
+            </div>
+
+            <button class="start-btn" onclick="startGame()">🚀 بدء الجولة</button>
+        </div>
+    </div>
+
+    <div class="hud-bar">
+        <div class="hud-item">💰 رصيدك: <span id="userBalance" data-game-balance>0</span> ريال</div>
+        <div class="hud-item">🏆 الرهان الكلي: <span id="potAmount">0</span> ريال</div>
+        <div class="hud-item">🔄 الدور الحالي: <span id="turnText">...</span></div>
+    </div>
+
+    <div class="bots-indicators" id="botsIndicators"></div>
+
+    <div class="board-area" id="boardArea">
+        <canvas id="dominoCanvas"></canvas>
+    </div>
+
+    <div class="status-msg" id="statusMsg">جاري التجهيز...</div>
+
+    <button class="draw-btn" id="drawBtn" onclick="drawFromBoneyard()">📥 سحب قطعة</button>
+
+    <div class="player-hand" id="playerHand"></div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../js/supabase.js"></script><script src="../js/game-bridge.js"></script><script>
+    let playerMode = 4;
+    let betAmount = 50;
+    let balance = 0;
+    let pot = 0;
+
+    let boneyard = [];
+    let board = [];
+    let players = [];
+    let turn = 0;
+
+    const canvas = document.getElementById('dominoCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const dotPositions = {
+        0: [],
+        1: [{x: 0.5, y: 0.5}],
+        2: [{x: 0.25, y: 0.25}, {x: 0.75, y: 0.75}],
+        3: [{x: 0.25, y: 0.25}, {x: 0.5, y: 0.5}, {x: 0.75, y: 0.75}],
+        4: [{x: 0.25, y: 0.25}, {x: 0.75, y: 0.25}, {x: 0.25, y: 0.75}, {x: 0.75, y: 0.75}],
+        5: [{x: 0.25, y: 0.25}, {x: 0.75, y: 0.25}, {x: 0.5, y: 0.5}, {x: 0.25, y: 0.75}, {x: 0.75, y: 0.75}],
+        6: [{x: 0.25, y: 0.25}, {x: 0.75, y: 0.25}, {x: 0.25, y: 0.5}, {x: 0.75, y: 0.5}, {x: 0.25, y: 0.75}, {x: 0.75, y: 0.75}]
+    };
+
+    function resizeCanvas() {
+        const area = document.getElementById('boardArea');
+        canvas.width = area.clientWidth;
+        canvas.height = area.clientHeight;
+        renderBoard();
+    }
+    window.addEventListener('resize', resizeCanvas);
+
+    function setMode(mode, btn) {
+        playerMode = mode;
+        btn.parentElement.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('potPreview').innerText = betAmount * playerMode;
+    }
+
+    function setBet(amount, btn) {
+        betAmount = amount;
+        btn.parentElement.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('potPreview').innerText = betAmount * playerMode;
+    }
+
+    function createDominoes() {
+        let tiles = [];
+        for (let i = 0; i <= 6; i++) {
+            for (let j = i; j <= 6; j++) {
+                tiles.push({ val1: i, val2: j });
+            }
+        }
+        return tiles.sort(() => Math.random() - 0.5);
+    }
+
+    async function startGame() {
+        const remaining = await gameBridge.debit('domino', betAmount);
+        if (remaining === null) return;
+        balance = remaining;
+        pot = betAmount * playerMode;
+
+        document.getElementById('userBalance').innerText = balance;
+        document.getElementById('potAmount').innerText = pot;
+        document.getElementById('setupModal').style.display = 'none';
+
+        resizeCanvas();
+        initRound();
+    }
+
+    function initRound() {
+        boneyard = createDominoes();
+        board = [];
+        players = [];
+
+        const names = ['أنت', 'البوت 1 (خصم)', 'البوت 2 (حليفك)', 'البوت 3 (خصم)'];
+        
+        // تقسيم القطع (7 قطع لكل لاعب)
+        for (let i = 0; i < playerMode; i++) {
+            players.push({
+                id: i,
+                name: names[i],
+                isBot: i !== 0,
+                hand: boneyard.splice(0, 7)
+            });
+        }
+
+        // --- قاعدة الشيش العربية (صاحب أكبر دبل يبدأ) ---
+        let starterIndex = -1;
+        let highestDouble = -1;
+
+        for (let d = 6; d >= 0; d--) {
+            for (let p = 0; p < playerMode; p++) {
+                if (players[p].hand.some(t => t.val1 === d && t.val2 === d)) {
+                    starterIndex = p;
+                    highestDouble = d;
+                    break;
+                }
+            }
+            if (starterIndex !== -1) break;
+        }
+
+        if (starterIndex !== -1) {
+            turn = starterIndex;
+            const tileIdx = players[turn].hand.findIndex(t => t.val1 === highestDouble && t.val2 === highestDouble);
+            const startingTile = players[turn].hand.splice(tileIdx, 1)[0];
+
+            board.push({ tile: startingTile, leftVal: startingTile.val1, rightVal: startingTile.val2 });
+            playDominoSound();
+
+            const doubleName = highestDouble === 6 ? 'الشيش (6-6)' : `الدبل (${highestDouble}-${highestDouble})`;
+            document.getElementById('statusMsg').innerText = `بدأ الجولة: ${players[turn].name} بـ ${doubleName}`;
+
+            turn = (turn + 1) % playerMode;
+        } else {
+            turn = 0;
+            document.getElementById('statusMsg').innerText = 'بدأت الجولة!';
+        }
+
+        updateUI();
+    }
+
+    function updateUI() {
+        renderPlayerHand();
+        renderBotsHeader();
+        renderBoard();
+        document.getElementById('turnText').innerText = players[turn].name;
+
+        if (players[turn].isBot) {
+            document.getElementById('drawBtn').style.display = 'none';
+            setTimeout(aiTurn, 1400);
+        } else {
+            checkUserValidMoves();
+        }
+    }
+
+    function renderBotsHeader() {
+        const container = document.getElementById('botsIndicators');
+        container.innerHTML = '';
+
+        players.forEach((p, idx) => {
+            if (idx === 0) return; // عدم عرض اللاعب الحقيقي بالأعلى
+            const div = document.createElement('div');
+            div.className = `bot-badge ${turn === idx ? 'active-turn' : ''}`;
+            div.innerHTML = `<strong>${p.name}</strong><br>🀄 ${p.hand.length} قطع`;
+            container.appendChild(div);
+        });
+    }
+
+    function renderPlayerHand() {
+        const handDiv = document.getElementById('playerHand');
+        handDiv.innerHTML = '';
+
+        players[0].hand.forEach((tile, idx) => {
+            const el = document.createElement('div');
+            el.className = 'domino-tile';
+            el.onclick = () => userPlayTile(idx);
+
+            el.appendChild(createHalfDOM(tile.val1));
+            const line = document.createElement('div');
+            line.className = 'domino-line';
+            el.appendChild(line);
+            el.appendChild(createHalfDOM(tile.val2));
+
+            handDiv.appendChild(el);
+        });
+    }
+
+    function createHalfDOM(val) {
+        const half = document.createElement('div');
+        half.className = 'domino-half';
+        const grid = document.createElement('div');
+        grid.className = 'dot-grid';
+
+        const dotIndices = {
+            0: [],
+            1: [4],
+            2: [0, 8],
+            3: [0, 4, 8],
+            4: [0, 2, 6, 8],
+            5: [0, 2, 4, 6, 8],
+            6: [0, 2, 3, 5, 6, 8]
+        };
+
+        const activeDots = dotIndices[val] || [];
+        for (let i = 0; i < 9; i++) {
+            const dot = document.createElement('div');
+            if (activeDots.includes(i)) dot.className = 'dot';
+            grid.appendChild(dot);
+        }
+        half.appendChild(grid);
+        return half;
+    }
+
+    function checkUserValidMoves() {
+        if (board.length === 0) return;
+
+        const leftEnd = board[0].leftVal;
+        const rightEnd = board[board.length - 1].rightVal;
+
+        const canPlay = players[0].hand.some(t => 
+            t.val1 === leftEnd || t.val2 === leftEnd || t.val1 === rightEnd || t.val2 === rightEnd
+        );
+
+        if (!canPlay) {
+            if (boneyard.length > 0) {
+                document.getElementById('statusMsg').innerText = 'لا تملك قطعة مطابقة! اسحب قطعة من السحب.';
+                document.getElementById('drawBtn').style.display = 'block';
+            } else {
+                document.getElementById('statusMsg').innerText = 'لا توجد قطع مطابقة لديك! تم تخطي دورك.';
+                setTimeout(nextTurn, 1500);
+            }
+        } else {
+            document.getElementById('statusMsg').innerText = 'دورك الآن للعب';
+            document.getElementById('drawBtn').style.display = 'none';
+        }
+    }
+
+    function drawFromBoneyard() {
+        if (boneyard.length > 0 && turn === 0) {
+            players[0].hand.push(boneyard.pop());
+            updateUI();
+        }
+    }
+
+    function userPlayTile(index) {
+        if (turn !== 0) return;
+
+        const tile = players[0].hand[index];
+
+        if (board.length === 0) {
+            board.push({ tile, leftVal: tile.val1, rightVal: tile.val2 });
+            players[0].hand.splice(index, 1);
+            playDominoSound();
+            checkWinOrNext();
+            return;
+        }
+
+        const leftEnd = board[0].leftVal;
+        const rightEnd = board[board.length - 1].rightVal;
+
+        if (tile.val1 === leftEnd) {
+            board.unshift({ tile, leftVal: tile.val2, rightVal: tile.val1 });
+            players[0].hand.splice(index, 1);
+        } else if (tile.val2 === leftEnd) {
+            board.unshift({ tile, leftVal: tile.val1, rightVal: tile.val2 });
+            players[0].hand.splice(index, 1);
+        } else if (tile.val1 === rightEnd) {
+            board.push({ tile, leftVal: tile.val1, rightVal: tile.val2 });
+            players[0].hand.splice(index, 1);
+        } else if (tile.val2 === rightEnd) {
+            board.push({ tile, leftVal: tile.val2, rightVal: tile.val1 });
+            players[0].hand.splice(index, 1);
+        } else {
+            document.getElementById('statusMsg').innerText = 'هذه القطعة غير مطابقة لأطراف الطاولة!';
+            return;
+        }
+
+        playDominoSound();
+        checkWinOrNext();
+    }
+
+    function aiTurn() {
+        const p = players[turn];
+        const leftEnd = board[0].leftVal;
+        const rightEnd = board[board.length - 1].rightVal;
+
+        let matchIdx = -1;
+        let placeSide = '';
+        let flipped = false;
+
+        for (let i = 0; i < p.hand.length; i++) {
+            const t = p.hand[i];
+            if (t.val1 === leftEnd) { matchIdx = i; placeSide = 'left'; flipped = true; break; }
+            if (t.val2 === leftEnd) { matchIdx = i; placeSide = 'left'; flipped = false; break; }
+            if (t.val1 === rightEnd) { matchIdx = i; placeSide = 'right'; flipped = false; break; }
+            if (t.val2 === rightEnd) { matchIdx = i; placeSide = 'right'; flipped = true; break; }
+        }
+
+        if (matchIdx !== -1) {
+            const tile = p.hand.splice(matchIdx, 1)[0];
+            if (placeSide === 'left') {
+                board.unshift({ tile, leftVal: flipped ? tile.val2 : tile.val1, rightVal: flipped ? tile.val1 : tile.val2 });
+            } else {
+                board.push({ tile, leftVal: flipped ? tile.val2 : tile.val1, rightVal: flipped ? tile.val1 : tile.val2 });
+            }
+            playDominoSound();
+            document.getElementById('statusMsg').innerText = `لعب ${p.name} قطعة على الطاولة`;
+            checkWinOrNext();
+        } else {
+            if (boneyard.length > 0) {
+                p.hand.push(boneyard.pop());
+                document.getElementById('statusMsg').innerText = `سحب ${p.name} قطعة من السحب`;
+                setTimeout(aiTurn, 800);
+            } else {
+                document.getElementById('statusMsg').innerText = `تخطى ${p.name} دوره لعدم وجود قطع`;
+                setTimeout(nextTurn, 1200);
+            }
+        }
+    }
+
+    async function checkWinOrNext() {
+        // التحقق من فائز الجولة
+        for (let i = 0; i < playerMode; i++) {
+            if (players[i].hand.length === 0) {
+                let winner = players[i];
+                let teamWon = (i === 0 || i === 2);
+                if ((teamWon && playerMode === 4) || (i === 0 && playerMode === 2)) { await gameBridge.credit('domino', pot); balance += pot; }
+
+                const winMsg = playerMode === 4 
+                    ? (teamWon ? `🎉 مبروك! فاز فريقك (${winner.name}) وحصلتم على الجائزة: ${pot} ريال!` : `❌ فاز فريق المنافسين (${winner.name})!`)
+                    : `🎉 فاز ${winner.name} بالرهان: ${pot} ريال!`;
+
+                alert(winMsg);
+                resetToSetup();
+                return;
+            }
+        }
+
+        nextTurn();
+    }
+
+    function nextTurn() {
+        turn = (turn + 1) % playerMode;
+        updateUI();
+    }
+
+    function resetToSetup() {
+        document.getElementById('setupModal').style.display = 'flex';
+        document.getElementById('userBalance').innerText = balance;
+    }
+
+    function renderBoard() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        const tileW = 56;
+        const tileH = 32;
+        const startX = Math.max(20, canvas.width / 2 - (board.length * (tileW + 4)) / 2);
+        const startY = canvas.height / 2 - tileH / 2;
+
+        board.forEach((item, idx) => {
+            const x = startX + idx * (tileW + 4);
+            const y = startY;
+
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+            ctx.beginPath();
+            ctx.roundRect(x + 3, y + 4, tileW, tileH, 5);
+            ctx.fill();
+
+            let tileGrad = ctx.createLinearGradient(x, y, x, y + tileH);
+            tileGrad.addColorStop(0, '#ffffff');
+            tileGrad.addColorStop(1, '#e6e2d3');
+            ctx.fillStyle = tileGrad;
+            ctx.strokeStyle = '#222222';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.roundRect(x, y, tileW, tileH, 5);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.strokeStyle = '#888888';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(x + tileW / 2, y + 3);
+            ctx.lineTo(x + tileW / 2, y + tileH - 3);
+            ctx.stroke();
+
+            drawCanvasHalfDots(x, y, tileW / 2, tileH, item.leftVal);
+            drawCanvasHalfDots(x + tileW / 2, y, tileW / 2, tileH, item.rightVal);
+        });
+    }
+
+    function drawCanvasHalfDots(hx, hy, hw, hh, val) {
+        const dots = dotPositions[val] || [];
+        ctx.fillStyle = '#111111';
+
+        dots.forEach(d => {
+            const dx = hx + d.x * hw;
+            const dy = hy + d.y * hh;
+            const radius = 2.5;
+
+            ctx.beginPath();
+            ctx.arc(dx, dy, radius, 0, Math.PI * 2);
+            ctx.fill();
+        });
+    }
+
+    function playDominoSound() {
+        try {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(130, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(35, audioCtx.currentTime + 0.09);
+
+            gain.gain.setValueAtTime(0.35, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.09);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.09);
+        } catch(e){}
+    }
+
+    gameBridge.ready().catch(()=>{});
+</script>
+
+<a href="../app.html#games" class="webchat-back">← العودة إلى WebChat</a><style>.webchat-back{position:fixed;top:12px;right:12px;z-index:9999;color:#f7d070;background:#101722dd;border:1px solid #f7d07066;border-radius:10px;padding:8px 12px;text-decoration:none;font:700 12px system-ui}</style></body>
+</html>

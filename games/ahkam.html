@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>👑 مجلس الأحكام الملكي - ضد الروبوتات الذكية</title>
+    <style>
+        :root {
+            --bg: #07050a;
+            --panel: rgba(22, 16, 35, 0.9);
+            --gold: #f7d070;
+            --gold-dark: #c8963e;
+            --red: #ff2a5f;
+            --blue: #2a9df4;
+            --green: #00f0b5;
+            --border: rgba(247, 208, 112, 0.3);
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0; padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            background: radial-gradient(circle at center, #1f1133 0%, #06040a 100%);
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 15px;
+            overflow-x: hidden;
+        }
+
+        /* حاوية اللعبة */
+        .card {
+            background: var(--panel);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 28px;
+            padding: 28px 22px;
+            width: 100%;
+            max-width: 460px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.85), 0 0 35px rgba(247, 208, 112, 0.12);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--gold), transparent);
+        }
+
+        /* زر الصوت */
+        .sound-toggle {
+            position: absolute;
+            top: 18px;
+            left: 20px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid var(--border);
+            color: var(--gold);
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 16px;
+            z-index: 10;
+        }
+
+        h1 {
+            font-size: 25px;
+            font-weight: 900;
+            background: linear-gradient(180deg, #ffffff 30%, var(--gold) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 4px;
+        }
+
+        .subtitle {
+            color: #8e83ab;
+            font-size: 13px;
+            margin-bottom: 22px;
+        }
+
+        /* إدخال الاسم وتحديد الروبوتات */
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px;
+            border-radius: 16px;
+            border: 1px solid rgba(247, 208, 112, 0.25);
+            background: rgba(10, 6, 18, 0.8);
+            color: #fff;
+            font-size: 15px;
+            text-align: center;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: var(--gold);
+            box-shadow: 0 0 12px rgba(247, 208, 112, 0.25);
+        }
+
+        .bot-select-box {
+            background: rgba(10, 6, 18, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 12px;
+            text-align: right;
+            margin-bottom: 10px;
+        }
+
+        .bot-select-title {
+            font-size: 13px;
+            color: var(--gold);
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .bot-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .bot-card {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 8px 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+
+        /* الأزرار */
+        button {
+            width: 100%;
+            padding: 15px;
+            border-radius: 16px;
+            border: none;
+            background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+            color: #0d0814;
+            font-size: 16px;
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(247, 208, 112, 0.25);
+            transition: all 0.2s ease;
+            margin-top: 8px;
+        }
+
+        button:active { transform: scale(0.97); }
+        button.secondary {
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+            border: 1px solid var(--border);
+            box-shadow: none;
+        }
+
+        /* الروليت وأنيميشن القرعة */
+        .roulette-container {
+            padding: 30px 10px;
+            margin: 20px 0;
+            background: rgba(0,0,0,0.4);
+            border-radius: 20px;
+            border: 1px dashed var(--gold);
+        }
+
+        .roulette-name {
+            font-size: 28px;
+            font-weight: 900;
+            color: var(--gold);
+            text-shadow: 0 0 15px rgba(247, 208, 112, 0.6);
+            min-height: 40px;
+        }
+
+        /* بطاقات النتائج */
+        .res-card {
+            padding: 16px;
+            border-radius: 16px;
+            margin: 10px 0;
+            font-weight: 800;
+            text-align: right;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+            animation: slideUp 0.4s ease;
+        }
+
+        .king { background: linear-gradient(90deg, #f7d070, #e0a938); color: #120b1f; }
+        .victim { background: linear-gradient(90deg, #ff2a5f, #bf133d); color: #fff; }
+        .witness { background: linear-gradient(90deg, #2a9df4, #1260cc); color: #fff; }
+
+        .rule-box {
+            background: rgba(247, 208, 112, 0.08);
+            border: 1px dashed var(--gold);
+            padding: 16px;
+            border-radius: 16px;
+            margin: 15px 0;
+            text-align: center;
+            line-height: 1.6;
+        }
+
+        .quick-rules {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+            justify-content: center;
+        }
+
+        .rule-tag {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(247,208,112,0.2);
+            padding: 6px 10px;
+            border-radius: 10px;
+            font-size: 11px;
+            color: #ddd;
+            cursor: pointer;
+        }
+
+        .rule-tag:hover { background: rgba(247,208,112,0.2); color: var(--gold); }
+
+        .bot-thinking {
+            font-size: 14px;
+            color: var(--gold);
+            margin: 15px 0;
+            animation: pulse 1s infinite alternate;
+        }
+
+        .hidden { display: none !important; }
+
+        @keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulse { from { opacity: 0.4; } to { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div class="sound-toggle" onclick="toggleMute()" id="soundBtn">🔊</div>
+
+    <h1>🏛️ مجلس الأحكام الملكي</h1>
+    <div class="subtitle">تحدي الروبوتات والذكاء الاصطناعي (أوفلاين)</div>
+
+    <!-- 1. واجهة إدخال اسم اللاعب وقائمة الروبوتات -->
+    <div id="sec-setup">
+        <div class="input-group">
+            <input type="text" id="player-name" placeholder="أدخل اسمك الفخم..." value="معصار" maxlength="18">
+        </div>
+
+        <div class="bot-select-box">
+            <div class="bot-select-title">🤖 منافسوك في المجلس (روبوتات بذكاء اصطناعي):</div>
+            <div class="bot-grid">
+                <div class="bot-card">🤖 الحكيم زرقاء</div>
+                <div class="bot-card">🤖 القاضي صمصام</div>
+                <div class="bot-card">🤖 الفارس دهماش</div>
+                <div class="bot-card">🤖 الشاعر شهم</div>
+            </div>
+        </div>
+
+        <button onclick="startDrawProcess()">بدء إجراءات السحب الملكي 🎲</button>
+    </div>
+
+    <!-- 2. واجهة السحب والقرعة (الروليت) -->
+    <div id="sec-drawing" class="hidden">
+        <h3 style="color:var(--gold); font-size:18px;" id="draw-stage-title">جاري اختيار الحاكم...</h3>
+        <div class="roulette-container">
+            <div class="roulette-name" id="roulette-display">🎯 ...</div>
+        </div>
+        <p style="font-size: 12px; color: #8e83ab;">الأقدار تُكتب الآن بأمر المجلس</p>
+    </div>
+
+    <!-- 3. واجهة كتابة الحكم من قبل اللاعب (إذا كان الملك) -->
+    <div id="sec-user-judge" class="hidden">
+        <h3 style="color:var(--gold); margin-bottom:6px; font-size:20px;">👑 جلالة الحاكم: <span id="user-king-name" style="color:#fff;">-</span></h3>
+        <p style="color:#8e83ab; font-size:13px; margin-bottom:15px;">المحكوم عليه تحت رحمتك: <b id="user-victim-name" style="color:var(--red);">-</b></p>
+
+        <div class="quick-rules">
+            <div class="rule-tag" onclick="setQuickRule('ألقِ قصيدة ثناء وفخر في الحاكم الآن! 📜')">📜 قصيدة ثناء</div>
+            <div class="rule-tag" onclick="setQuickRule('شرب كاس ماء بارد دفعة واحدة 🥛')">🥛 شرب ماء</div>
+            <div class="rule-tag" onclick="setQuickRule('القيام بـ 15 تمرين ضغط فوراً 🏋️')">🏋️ 15 ضغط</div>
+            <div class="rule-tag" onclick="setQuickRule('تنفيذ 10 تمارين قرفصاء (Squats) 🦵')">🦵 10 قرفصاء</div>
+        </div>
+
+        <input type="text" id="royal-rule-text" placeholder="اكتب حكمك الملكي هنا أو اختر أعلاه..." maxlength="100">
+        <button onclick="confirmUserRule()">إصدار وتوثيق الحكم 📜</button>
+    </div>
+
+    <!-- 4. واجهة انتظار تفكير الروبوت (إذا كان الملك روبوت) -->
+    <div id="sec-bot-judging" class="hidden">
+        <h3 style="color:var(--gold); font-size:18px;" id="bot-king-title">👑 الحاكم يجلس على العرش...</h3>
+        <div class="bot-thinking" id="bot-thinking-text">🤖 الروبوت يفكر في حكم ملكي مناسب...</div>
+    </div>
+
+    <!-- 5. واجهة عرض النتيجة النهائية -->
+    <div id="sec-results" class="hidden">
+        <h3 style="color:var(--gold); margin-bottom:15px; font-size:20px;">📜 المرسوم الملكي النهائي 📜</h3>
+        
+        <div class="res-card king">
+            <span>👑 جلالة الحاكم:</span>
+            <span id="res-king">-</span>
+        </div>
+        <div class="res-card victim">
+            <span>🎯 المحكوم عليه:</span>
+            <span id="res-victim">-</span>
+        </div>
+        <div class="res-card witness">
+            <span>👁️ الشاهد الملكي:</span>
+            <span id="res-witness">-</span>
+        </div>
+
+        <div class="rule-box">
+            <span style="color:var(--gold); font-size:12px; display:block; margin-bottom:4px; font-weight:bold;">نص الحكم الصادر:</span>
+            <span id="res-rule" style="font-size:16px; font-weight:900; color:#fff;">-</span>
+        </div>
+
+        <button onclick="startDrawProcess()">جولة جديدة 🔄</button>
+        <button class="secondary" onclick="resetAll()" style="margin-top:8px;">تغيير الإعدادات والاسم ⚙️</button>
+    </div>
+
+    <div style="margin-top: 20px; font-size: 11px; color: #5d527a; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 12px;">
+        صُممت الفخامة بحقوق <b>وضاح</b> © 2026
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../js/supabase.js"></script><script src="../js/game-bridge.js"></script><script>
+    // --- 🔊 المحرك الصوتي الفخم (Web Audio API) ---
+    let audioCtx = null;
+    let isMuted = false;
+    let walletRoundStarted = false;
+
+    function getAudioContext() {
+        if (!audioCtx) {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            audioCtx = new AudioContext();
+        }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+        return audioCtx;
+    }
+
+    function toggleMute() {
+        isMuted = !isMuted;
+        document.getElementById("soundBtn").innerText = isMuted ? "🔇" : "🔊";
+    }
+
+    function playClickSound() {
+        if (isMuted) return;
+        const ctx = getAudioContext();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(800, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 0.05);
+        gain.gain.setValueAtTime(0.15, ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.05);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.05);
+    }
+
+    function playTickSound(pitch = 1) {
+        if (isMuted) return;
+        const ctx = getAudioContext();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(300 * pitch, ctx.currentTime);
+        gain.gain.setValueAtTime(0.1, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.04);
+    }
+
+    function playFanfareSound() {
+        if (isMuted) return;
+        const ctx = getAudioContext();
+        const notes = [523.25, 659.25, 783.99, 1046.50];
+        notes.forEach((freq, idx) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.1);
+            gain.gain.setValueAtTime(0, ctx.currentTime + idx * 0.1);
+            gain.gain.linearRampToValueAtTime(0.12, ctx.currentTime + idx * 0.1 + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + idx * 0.1 + 0.35);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(ctx.currentTime + idx * 0.1);
+            osc.stop(ctx.currentTime + idx * 0.1 + 0.35);
+        });
+    }
+
+    // --- 🤖 قائمة الأحكام الذكية للروبوتات ---
+    const botRulesPool = [
+        "إلقاء زامل أو بيت شعر بأسلوب فخم وأصيل 📜",
+        "القيام بـ 20 تمرين ضغط رياضي فوراً 🏋️️",
+        "شرب كأس ماء بارد دفعة واحدة دون توقف 🥛",
+        "الوقوف على قدم واحدة لمدة 45 ثانية ⏱️",
+        "قول جملة (أنا تحت طاعة جلالة الملك) 3 مرات بصوت عالٍ 👑",
+        "إغلاق العينين وتسمية 5 أشياء باللون الأزرق حولك 👁️",
+        "القيام بـ 15 تمرين قرفصاء (Squat) ببطء 🦵",
+        "تقديم تحية عسكرية ملكية للحاكم لمدة 10 ثوانٍ 🫡"
+    ];
+
+    const bots = ["🤖 الحكيم زرقاء", "🤖 القاضي صمصام", "🤖 الفارس دهماش", "🤖 الشاعر شهم"];
+    let allParticipants = [];
+    let currentKing = "";
+    let currentVictim = "";
+    let currentWitness = "";
+    let userPlayerName = "معصار";
+
+    function showScreen(id) {
+        ['sec-setup', 'sec-drawing', 'sec-user-judge', 'sec-bot-judging', 'sec-results'].forEach(s => {
+            document.getElementById(s).classList.add("hidden");
+        });
+        document.getElementById(id).classList.remove("hidden");
+    }
+
+    async function startDrawProcess() {
+        if (!walletRoundStarted) { const remaining = await gameBridge.debit('ahkam', 100); if (remaining === null) return; walletRoundStarted = true; }
+        playClickSound();
+        const inputName = document.getElementById("player-name").value.trim();
+        userPlayerName = inputName ? inputName : "المحارب الملكي";
+
+        allParticipants = [userPlayerName, ...bots];
+
+        showScreen('sec-drawing');
+
+        // خلط القائمة عشوائياً
+        let shuffled = [...allParticipants].sort(() => 0.5 - Math.random());
+        currentKing = shuffled[0];
+        currentVictim = shuffled[1];
+        currentWitness = shuffled[2];
+
+        runRouletteAnimation(`👑 جاري اختيار الحاكم...`, currentKing, () => {
+            runRouletteAnimation(`🎯 جاري اختيار المحكوم عليه...`, currentVictim, () => {
+                // الشاشات حسب من هو الملك
+                if (currentKing === userPlayerName) {
+                    // إذا كان اللاعب البشري هو الملك
+                    document.getElementById("user-king-name").innerText = currentKing;
+                    document.getElementById("user-victim-name").innerText = currentVictim;
+                    document.getElementById("royal-rule-text").value = "";
+                    showScreen('sec-user-judge');
+                } else {
+                    // إذا كان الملك أحد الروبوتات
+                    document.getElementById("bot-king-title").innerText = `👑 جلالة الملك ${currentKing} أصدر أمره...`;
+                    document.getElementById("bot-thinking-text").innerText = `🤖 ${currentKing} يدرس ملف ${currentVictim} لإصدار الحكم...`;
+                    showScreen('sec-bot-judging');
+
+                    setTimeout(() => {
+                        const randomRule = botRulesPool[Math.floor(Math.random() * botRulesPool.length)];
+                        finalizeRound(randomRule);
+                    }, 2200);
+                }
+            });
+        });
+    }
+
+    function runRouletteAnimation(title, targetWinner, onComplete) {
+        document.getElementById("draw-stage-title").innerText = title;
+        const display = document.getElementById("roulette-display");
+        
+        let counter = 0;
+        let speed = 50;
+        let totalSteps = 22;
+
+        function step() {
+            const randomName = allParticipants[Math.floor(Math.random() * allParticipants.length)];
+            display.innerText = randomName;
+            playTickSound(1 + (counter / totalSteps));
+
+            counter++;
+            if (counter < totalSteps) {
+                speed += 9;
+                setTimeout(step, speed);
+            } else {
+                display.innerText = "👑 " + targetWinner + " 👑";
+                playFanfareSound();
+                setTimeout(onComplete, 1200);
+            }
+        }
+
+        step();
+    }
+
+    function setQuickRule(text) {
+        playClickSound();
+        document.getElementById("royal-rule-text").value = text;
+    }
+
+    function confirmUserRule() {
+        playClickSound();
+        const ruleText = document.getElementById("royal-rule-text").value.trim();
+        if (!ruleText) {
+            alert("الرجاء كتابة أو اختيار حكم ملكي قبل التوثيق!");
+            return;
+        }
+        finalizeRound(ruleText);
+    }
+
+    function finalizeRound(finalRule) {
+        document.getElementById("res-king").innerText = currentKing;
+        document.getElementById("res-victim").innerText = currentVictim;
+        document.getElementById("res-witness").innerText = currentWitness;
+        document.getElementById("res-rule").innerText = finalRule;
+
+        playFanfareSound();
+        showScreen('sec-results');
+    }
+
+    function resetAll() {
+        playClickSound();
+        showScreen('sec-setup');
+    }
+
+    gameBridge.ready().catch(()=>{});
+</script>
+
+<a href="../app.html#games" class="webchat-back">← العودة إلى WebChat</a><style>.webchat-back{position:fixed;top:12px;right:12px;z-index:9999;color:#f7d070;background:#101722dd;border:1px solid #f7d07066;border-radius:10px;padding:8px 12px;text-decoration:none;font:700 12px system-ui}</style></body>
+</html>

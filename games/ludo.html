@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>🎲 لودو الملكية الفاخرة - VIP Royal Ludo</title>
+  <style>
+    :root {
+      --gold-primary: #ffd700;
+      --gold-dark: #b8860b;
+      --bg-dark: #0b0c10;
+      --panel-bg: rgba(22, 27, 34, 0.85);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; user-select: none; }
+
+    body {
+      background: radial-gradient(circle at center, #1a1f29 0%, #08090d 100%);
+      color: #ffffff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 15px;
+      overflow-x: hidden;
+    }
+
+    /* العنوان الملكي */
+    .vip-header {
+      text-align: center;
+      margin-bottom: 15px;
+    }
+    .vip-header h1 {
+      font-size: 2rem;
+      background: linear-gradient(135deg, #fff2a3 0%, #ffd700 50%, #caa42a 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+      letter-spacing: 1px;
+    }
+
+    /* الإطار الرئيسي للعبة */
+    .game-container {
+      background: var(--panel-bg);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 215, 0, 0.3);
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9), 0 0 30px rgba(255, 215, 0, 0.15);
+      max-width: 650px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+    }
+
+    /* لوحة الدور والنرد */
+    .status-panel {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 12px 20px;
+      border-radius: 14px;
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+    }
+
+    .turn-badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.15rem;
+      font-weight: bold;
+    }
+
+    .color-dot {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      box-shadow: 0 0 10px currentColor;
+    }
+
+    .dice-area {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    /* زر النرد الفاخر */
+    .dice-btn {
+      background: linear-gradient(135deg, #d4af37 0%, #f39c12 50%, #aa7c11 100%);
+      color: #000;
+      border: none;
+      padding: 12px 22px;
+      border-radius: 10px;
+      font-size: 1.05rem;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4), inset 0 1px 0 rgba(255,255,255,0.6);
+      transition: all 0.2s ease;
+    }
+    .dice-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(212, 175, 55, 0.6);
+    }
+    .dice-btn:active:not(:disabled) {
+      transform: translateY(1px);
+    }
+    .dice-btn:disabled {
+      background: #444;
+      color: #888;
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+
+    /* شكل النرد ثلاثي الأبعاد */
+    .dice-face {
+      width: 50px;
+      height: 50px;
+      background: radial-gradient(circle, #ffffff 0%, #e0e0e0 100%);
+      color: #111;
+      font-size: 2rem;
+      font-weight: 900;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.6), inset 0 0 5px rgba(0,0,0,0.2);
+      border: 2px solid #ffd700;
+      transition: transform 0.2s;
+    }
+    .rolling {
+      animation: roll3d 0.5s infinite linear;
+    }
+    @keyframes roll3d {
+      0% { transform: rotate(0deg) scale(0.9); }
+      50% { transform: rotate(180deg) scale(1.1); }
+      100% { transform: rotate(360deg) scale(0.9); }
+    }
+
+    /* شريط التنبيهات النصي */
+    #messageLog {
+      width: 100%;
+      text-align: center;
+      font-size: 1rem;
+      font-weight: 700;
+      padding: 10px;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 8px;
+      color: #ffd700;
+      border: 1px solid rgba(255, 215, 0, 0.2);
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* رقعة اللعب */
+    canvas {
+      background: #0d0f14;
+      border-radius: 14px;
+      max-width: 100%;
+      height: auto;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8), 0 0 2px 2px rgba(255,215,0,0.4);
+      cursor: pointer;
+      touch-action: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="vip-header">
+    <h1>👑 لودو الملكية الفاخرة (VIP)</h1>
+  </div>
+
+  <div class="game-container">
+    <div class="status-panel">
+      <div class="turn-badge">
+        <span class="color-dot" id="playerDot"></span>
+        <span id="playerName">الأحمر الملكي</span>
+      </div>
+      <div class="dice-area">
+        <button class="dice-btn" id="rollBtn" onclick="handleDiceRoll()">ارْمِ النَّرْد 🎲</button>
+        <div class="dice-face" id="diceVal">-</div>
+      </div>
+    </div>
+
+    <div id="messageLog">مرحباً بك! اضغط على "ارْمِ النَّرْد" لبدء الجولة.</div>
+
+    <canvas id="ludoBoard" width="600" height="600"></canvas>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../js/supabase.js"></script><script src="../js/game-bridge.js"></script><script>
+    // --- نظام الأكواد الصوتية الحقيقية (Web Audio API) ---
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+
+    function initAudio() {
+      if (!audioCtx) audioCtx = new AudioContext();
+    }
+
+    function playRollSound() {
+      initAudio(); if (!audioCtx) return;
+      const bufferSize = audioCtx.sampleRate * 0.12;
+      const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+      const noise = audioCtx.createBufferSource();
+      noise.buffer = buffer;
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'bandpass'; filter.frequency.value = 800;
+      noise.connect(filter); filter.connect(audioCtx.destination);
+      noise.start();
+    }
+
+    function playMoveSound() {
+      initAudio(); if (!audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(320, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(140, audioCtx.currentTime + 0.08);
+      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.start(); osc.stop(audioCtx.currentTime + 0.08);
+    }
+
+    function playCaptureSound() {
+      initAudio(); if (!audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(550, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(110, audioCtx.currentTime + 0.25);
+      gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.start(); osc.stop(audioCtx.currentTime + 0.25);
+    }
+
+    function playWinSound() {
+      initAudio(); if (!audioCtx) return;
+      const notes = [523.25, 659.25, 783.99, 1046.50];
+      notes.forEach((freq, i) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime + i * 0.12);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + i * 0.12 + 0.35);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(audioCtx.currentTime + i * 0.12);
+        osc.stop(audioCtx.currentTime + i * 0.12 + 0.35);
+      });
+    }
+
+    // --- إعدادات اللعبة والرقعة ---
+    const canvas = document.getElementById('ludoBoard');
+    const ctx = canvas.getContext('2d');
+    const size = 600;
+    const cells = 15;
+    const S = size / cells;
+
+    const safeTiles = [0, 8, 13, 21, 26, 34, 39, 47];
+
+    const players = [
+      { id: 0, name: 'الأحمر الملكي', color: '#ff3344', darkColor: '#990011', glow: '#ff6677', startIdx: 0, baseCoords: [{x:2, y:2}, {x:4, y:2}, {x:2, y:4}, {x:4, y:4}] },
+      { id: 1, name: 'الزمرد الأخضر', color: '#00e676', darkColor: '#006633', glow: '#66ffa6', startIdx: 13, baseCoords: [{x:11, y:2}, {x:13, y:2}, {x:11, y:4}, {x:13, y:4}] },
+      { id: 2, name: 'الذهب الأصفر', color: '#ffcc00', darkColor: '#997a00', glow: '#ffdb4d', startIdx: 26, baseCoords: [{x:11, y:11}, {x:13, y:11}, {x:11, y:13}, {x:13, y:13}] },
+      { id: 3, name: 'الياقوت الأزرق', color: '#00b0ff', darkColor: '#005580', glow: '#66d1ff', startIdx: 39, baseCoords: [{x:2, y:11}, {x:4, y:11}, {x:2, y:13}, {x:4, y:13}] }
+    ];
+
+    const track = [
+      {x:1, y:6}, {x:2, y:6}, {x:3, y:6}, {x:4, y:6}, {x:5, y:6},
+      {x:6, y:5}, {x:6, y:4}, {x:6, y:3}, {x:6, y:2}, {x:6, y:1}, {x:6, y:0},
+      {x:7, y:0},
+      {x:8, y:0}, {x:8, y:1}, {x:8, y:2}, {x:8, y:3}, {x:8, y:4}, {x:8, y:5},
+      {x:9, y:6}, {x:10, y:6}, {x:11, y:6}, {x:12, y:6}, {x:13, y:6}, {x:14, y:6},
+      {x:14, y:7},
+      {x:14, y:8}, {x:13, y:8}, {x:12, y:8}, {x:11, y:8}, {x:10, y:8}, {x:9, y:8},
+      {x:8, y:9}, {x:8, y:10}, {x:8, y:11}, {x:8, y:12}, {x:8, y:13}, {x:8, y:14},
+      {x:7, y:14},
+      {x:6, y:14}, {x:6, y:13}, {x:6, y:12}, {x:6, y:11}, {x:6, y:10}, {x:6, y:9},
+      {x:5, y:8}, {x:4, y:8}, {x:3, y:8}, {x:2, y:8}, {x:1, y:8}, {x:0, y:8},
+      {x:0, y:7}, {x:0, y:6}
+    ];
+
+    const homeCorridors = [
+      [{x:1, y:7}, {x:2, y:7}, {x:3, y:7}, {x:4, y:7}, {x:5, y:7}],
+      [{x:7, y:1}, {x:7, y:2}, {x:7, y:3}, {x:7, y:4}, {x:7, y:5}],
+      [{x:13, y:7}, {x:12, y:7}, {x:11, y:7}, {x:10, y:7}, {x:9, y:7}],
+      [{x:7, y:13}, {x:7, y:12}, {x:7, y:11}, {x:7, y:10}, {x:7, y:9}]
+    ];
+
+    const finishCoords = [{x:6, y:7}, {x:7, y:6}, {x:8, y:7}, {x:7, y:8}];
+
+    let pawns = [
+      [-1, -1, -1, -1],
+      [-1, -1, -1, -1],
+      [-1, -1, -1, -1],
+      [-1, -1, -1, -1]
+    ];
+
+    let currentTurn = 0;
+    let diceValue = 0;
+    let hasRolled = false;
+    let isAnimating = false;
+    let movablePawns = [];
+    let walletRoundStarted = false;
+
+    function init() {
+      updateUI();
+      drawBoard();
+    }
+
+    function updateUI() {
+      const p = players[currentTurn];
+      document.getElementById('playerName').innerText = p.name;
+      document.getElementById('playerName').style.color = p.color;
+      document.getElementById('playerDot').style.backgroundColor = p.color;
+      document.getElementById('playerDot').style.boxShadow = `0 0 12px ${p.color}`;
+      document.getElementById('rollBtn').disabled = hasRolled || isAnimating;
+    }
+
+    function logMessage(msg) {
+      document.getElementById('messageLog').innerText = msg;
+    }
+
+    async function handleDiceRoll() {
+      if (hasRolled || isAnimating) return;
+      if (!walletRoundStarted) { const remaining = await gameBridge.debit('ludo', 100); if (remaining === null) return; walletRoundStarted = true; }
+
+      const diceEl = document.getElementById('diceVal');
+      diceEl.classList.add('rolling');
+      playRollSound();
+
+      let rolls = 0;
+      let interval = setInterval(() => {
+        diceEl.innerText = Math.floor(Math.random() * 6) + 1;
+        rolls++;
+        if (rolls > 12) {
+          clearInterval(interval);
+          diceEl.classList.remove('rolling');
+          diceValue = Math.floor(Math.random() * 6) + 1;
+          diceEl.innerText = diceValue;
+          hasRolled = true;
+          document.getElementById('rollBtn').disabled = true;
+          checkMoves();
+        }
+      }, 40);
+    }
+
+    function checkMoves() {
+      movablePawns = [];
+      const pPawns = pawns[currentTurn];
+
+      for (let i = 0; i < 4; i++) {
+        const pos = pPawns[i];
+        if (pos === -1) {
+          if (diceValue === 6) movablePawns.push(i);
+        } else if (pos < 56) {
+          if (pos + diceValue <= 56) movablePawns.push(i);
+        }
+      }
+
+      if (movablePawns.length === 0) {
+        logMessage(`لا توجد حركات متاح للـ ${players[currentTurn].name}. ينتقل الدور!`);
+        setTimeout(nextTurn, 1400);
+      } else if (movablePawns.length === 1 && pawns[currentTurn][movablePawns[0]] !== -1) {
+        logMessage(`${players[currentTurn].name}: جاري تحريك الحجر المتاح تلقائياً...`);
+        setTimeout(() => movePawnAnimated(movablePawns[0]), 500);
+      } else {
+        logMessage(`${players[currentTurn].name}: انقر على أحد الأحجار المتوهجة بالذهبي لتحريكه.`);
+        drawBoard();
+      }
+    }
+
+    // تحريك الحجر خطوة بخطوة بشكل واقعي مع الأصوات
+    function movePawnAnimated(pawnIdx) {
+      if (isAnimating) return;
+      isAnimating = true;
+
+      const p = currentTurn;
+      let currentPos = pawns[p][pawnIdx];
+      let targetPos;
+
+      if (currentPos === -1 && diceValue === 6) {
+        targetPos = 0;
+      } else {
+        targetPos = currentPos + diceValue;
+      }
+
+      let step = (currentPos === -1) ? targetPos : currentPos + 1;
+
+      let timer = setInterval(() => {
+        pawns[p][pawnIdx] = step;
+        playMoveSound();
+        drawBoard();
+
+        if (step >= targetPos) {
+          clearInterval(timer);
+          isAnimating = false;
+          finalizeMove(pawnIdx);
+        } else {
+          step++;
+        }
+      }, 160);
+    }
+
+    function finalizeMove(pawnIdx) {
+      const p = currentTurn;
+      let newPos = pawns[p][pawnIdx];
+      let bonusTurn = (diceValue === 6);
+
+      // فحص الأكل عند الوقوف في نفس المربع
+      if (newPos >= 0 && newPos <= 50) {
+        const absIdx = (players[p].startIdx + newPos) % 52;
+        const isSafe = safeTiles.includes(absIdx);
+
+        if (!isSafe) {
+          for (let op = 0; op < 4; op++) {
+            if (op === p) continue;
+            for (let k = 0; k < 4; k++) {
+              let opPos = pawns[op][k];
+              if (opPos >= 0 && opPos <= 50) {
+                let opAbsIdx = (players[op].startIdx + opPos) % 52;
+                if (opAbsIdx === absIdx) {
+                  pawns[op][k] = -1; // إعادة الخصم للقاعدة
+                  bonusTurn = true;
+                  playCaptureSound();
+                  logMessage(`⚔️ تم أكل حجر ${players[op].name}! حصل ${players[p].name} على دور إضافي.`);
+                }
+              }
+            }
+          }
+        }
+      }
+
+      if (newPos === 56) {
+        bonusTurn = true;
+        playWinSound();
+        logMessage(`🎯 وصل حجر للـ ${players[p].name} إلى خط النهاية!`);
+      }
+
+      if (pawns[p].every(val => val === 56)) {
+        playWinSound();
+        logMessage(`🎉🏆 ألف مبروك! فاز ${players[p].name} بالمركز الأول! 🏆🎉`);
+        drawBoard();
+        return;
+      }
+
+      drawBoard();
+
+      if (bonusTurn) {
+        hasRolled = false;
+        if(diceValue === 6) logMessage(`حصلت على رقم 6! ارمِ النرد مجدداً.`);
+        updateUI();
+      } else {
+        nextTurn();
+      }
+    }
+
+    function nextTurn() {
+      currentTurn = (currentTurn + 1) % 4;
+      hasRolled = false;
+      diceValue = 0;
+      document.getElementById('diceVal').innerText = '-';
+      movablePawns = [];
+      logMessage(`الدور الآن للـ ${players[currentTurn].name}.`);
+      updateUI();
+      drawBoard();
+    }
+
+    // دعم اللمس والنقر
+    canvas.addEventListener('pointerdown', function(e) {
+      if (!hasRolled || movablePawns.length === 0 || isAnimating) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const clickX = (e.clientX - rect.left) * (size / rect.width);
+      const clickY = (e.clientY - rect.top) * (size / rect.height);
+
+      let clickedPawn = -1;
+      let minDistance = 1000;
+
+      for (let pIdx of movablePawns) {
+        const coord = getRenderCoord(currentTurn, pIdx);
+        const dist = Math.hypot(clickX - coord.px, clickY - coord.py);
+        if (dist < S * 0.8 && dist < minDistance) {
+          minDistance = dist;
+          clickedPawn = pIdx;
+        }
+      }
+
+      if (clickedPawn !== -1) {
+        movePawnAnimated(clickedPawn);
+      }
+    });
+
+    function getPawnLogicCoord(playerIdx, pawnIdx) {
+      const pos = pawns[playerIdx][pawnIdx];
+      if (pos === -1) {
+        return { x: players[playerIdx].baseCoords[pawnIdx].x - 0.5, y: players[playerIdx].baseCoords[pawnIdx].y - 0.5 };
+      } else if (pos <= 50) {
+        const absIdx = (players[playerIdx].startIdx + pos) % 52;
+        return track[absIdx];
+      } else if (pos <= 55) {
+        return homeCorridors[playerIdx][pos - 51];
+      } else {
+        return finishCoords[playerIdx];
+      }
+    }
+
+    let visualCoords = {};
+
+    function getRenderCoord(p, i) {
+      return visualCoords[`${p}_${i}`] || {px: 0, py: 0};
+    }
+
+    // --- رسم الرقعة ثنائية/ثلاثية الأبعاد بأسلوب فاخر ---
+    function drawBoard() {
+      ctx.clearRect(0, 0, size, size);
+
+      // خلفية خشبية محفورة
+      ctx.fillStyle = '#121620';
+      ctx.fillRect(0, 0, size, size);
+
+      // قواعد اللاعبين
+      drawBaseZone(0, 0, 6, '#ff3344', '#770011');
+      drawBaseZone(9, 0, 6, '#00e676', '#004d26');
+      drawBaseZone(9, 9, 6, '#ffcc00', '#806600');
+      drawBaseZone(0, 9, 6, '#00b0ff', '#004466');
+
+      // مربعات الشبكة
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+      for (let r = 0; r < cells; r++) {
+        for (let c = 0; c < cells; c++) {
+          ctx.strokeRect(c*S, r*S, S, S);
+        }
+      }
+
+      // مسارات الألوان النهائية
+      homeCorridors[0].forEach(c => fillCellGradient(c.x, c.y, '#ff3344', '#990011'));
+      homeCorridors[1].forEach(c => fillCellGradient(c.x, c.y, '#00e676', '#006633'));
+      homeCorridors[2].forEach(c => fillCellGradient(c.x, c.y, '#ffcc00', '#997a00'));
+      homeCorridors[3].forEach(c => fillCellGradient(c.x, c.y, '#00b0ff', '#005580'));
+
+      // مناطق الخروج
+      fillCellGradient(1, 6, '#ff3344', '#990011');
+      fillCellGradient(8, 1, '#00e676', '#006633');
+      fillCellGradient(13, 8, '#ffcc00', '#997a00');
+      fillCellGradient(6, 13, '#00b0ff', '#005580');
+
+      // نجوم مناطق الأمان الذهبية
+      safeTiles.forEach(idx => {
+         let tc = track[idx];
+         drawGoldenStar(tc.x * S + S/2, tc.y * S + S/2, S * 0.28);
+      });
+
+      // مثلثات المركز الملكي
+      drawCenterTriangles();
+
+      // إطار خارجي ذهبي للرقعة
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = '#ffd700';
+      ctx.strokeRect(2, 2, size - 4, size - 4);
+
+      // تجميع الحجارة ورسمها مع الظلال ثنائية الإبعاد
+      let tileOccupancy = {};
+      for (let p = 0; p < 4; p++) {
+        for (let i = 0; i < 4; i++) {
+          const coord = getPawnLogicCoord(p, i);
+          let key = `${coord.x}_${coord.y}`;
+          if (!tileOccupancy[key]) tileOccupancy[key] = [];
+          tileOccupancy[key].push({ p, i, coord });
+        }
+      }
+
+      visualCoords = {};
+
+      Object.values(tileOccupancy).forEach(occupants => {
+        let count = occupants.length;
+        occupants.forEach((occ, index) => {
+          let px = occ.coord.x * S + S / 2;
+          let py = occ.coord.y * S + S / 2;
+
+          if (pawns[occ.p][occ.i] !== -1 && count > 1) {
+             let offset = (index - (count-1)/2) * 9;
+             px += offset; py += offset;
+          }
+
+          visualCoords[`${occ.p}_${occ.i}`] = {px, py};
+
+          const isMovable = (occ.p === currentTurn && movablePawns.includes(occ.i));
+          draw3DPawn(px, py, players[occ.p], isMovable);
+        });
+      });
+    }
+
+    function drawBaseZone(x, y, tileSize, mainColor, darkColor) {
+      let grad = ctx.createLinearGradient(x*S, y*S, (x+tileSize)*S, (y+tileSize)*S);
+      grad.addColorStop(0, mainColor);
+      grad.addColorStop(1, darkColor);
+      ctx.fillStyle = grad;
+      ctx.fillRect(x*S, y*S, tileSize*S, tileSize*S);
+
+      // إطار داخلي أبيض زجاجي
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+      ctx.fillRect((x+1)*S, (y+1)*S, (tileSize-2)*S, (tileSize-2)*S);
+    }
+
+    function fillCellGradient(x, y, color1, color2) {
+      let g = ctx.createLinearGradient(x*S, y*S, (x+1)*S, (y+1)*S);
+      g.addColorStop(0, color1); g.addColorStop(1, color2);
+      ctx.fillStyle = g;
+      ctx.fillRect(x*S, y*S, S, S);
+      ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+      ctx.strokeRect(x*S, y*S, S, S);
+    }
+
+    function drawGoldenStar(cx, cy, radius) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.translate(cx, cy);
+      ctx.moveTo(0, 0 - radius);
+      for (let i = 0; i < 5; i++) {
+        ctx.rotate(Math.PI / 5);
+        ctx.lineTo(0, 0 - (radius * 0.4));
+        ctx.rotate(Math.PI / 5);
+        ctx.lineTo(0, 0 - radius);
+      }
+      ctx.fillStyle = '#ffd700';
+      ctx.shadowColor = '#ffd700';
+      ctx.shadowBlur = 8;
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function drawCenterTriangles() {
+      let cx = 7.5 * S, cy = 7.5 * S;
+      
+      let p0 = ctx.createLinearGradient(6*S, 7.5*S, cx, cy); p0.addColorStop(0, '#ff3344'); p0.addColorStop(1, '#660000');
+      ctx.beginPath(); ctx.moveTo(6*S, 6*S); ctx.lineTo(cx, cy); ctx.lineTo(6*S, 9*S); ctx.fillStyle = p0; ctx.fill();
+
+      let p1 = ctx.createLinearGradient(7.5*S, 6*S, cx, cy); p1.addColorStop(0, '#00e676'); p1.addColorStop(1, '#004d1a');
+      ctx.beginPath(); ctx.moveTo(6*S, 6*S); ctx.lineTo(cx, cy); ctx.lineTo(9*S, 6*S); ctx.fillStyle = p1; ctx.fill();
+
+      let p2 = ctx.createLinearGradient(9*S, 7.5*S, cx, cy); p2.addColorStop(0, '#ffcc00'); p2.addColorStop(1, '#665200');
+      ctx.beginPath(); ctx.moveTo(9*S, 6*S); ctx.lineTo(cx, cy); ctx.lineTo(9*S, 9*S); ctx.fillStyle = p2; ctx.fill();
+
+      let p3 = ctx.createLinearGradient(7.5*S, 9*S, cx, cy); p3.addColorStop(0, '#00b0ff'); p3.addColorStop(1, '#003366');
+      ctx.beginPath(); ctx.moveTo(6*S, 9*S); ctx.lineTo(cx, cy); ctx.lineTo(9*S, 9*S); ctx.fillStyle = p3; ctx.fill();
+    }
+
+    // رسم حجر جوهرة كريستالي ثلاثي الأبعاد
+    function draw3DPawn(x, y, player, isMovable) {
+      ctx.save();
+
+      // توهج أصفر عند إمكانية الحركة
+      if (isMovable) {
+        ctx.beginPath();
+        ctx.arc(x, y, S * 0.48, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255, 215, 0, 0.4)';
+        ctx.shadowColor = '#ffd700';
+        ctx.shadowBlur = 12;
+        ctx.fill();
+      }
+
+      // ظل الحجر على الأرض
+      ctx.beginPath();
+      ctx.ellipse(x + 2, y + S*0.2, S*0.28, S*0.14, 0, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(0,0,0,0.5)';
+      ctx.fill();
+
+      // قاعدة الحجر
+      let gradBase = ctx.createRadialGradient(x - 3, y - 3, 2, x, y, S * 0.35);
+      gradBase.addColorStop(0, player.glow);
+      gradBase.addColorStop(0.7, player.color);
+      gradBase.addColorStop(1, player.darkColor);
+
+      ctx.beginPath();
+      ctx.arc(x, y, S * 0.34, 0, Math.PI * 2);
+      ctx.fillStyle = gradBase;
+      ctx.fill();
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = '#ffffff';
+      ctx.stroke();
+
+      // حلقة جوهرة مركزية
+      let gradTop = ctx.createRadialGradient(x - 2, y - 4, 1, x, y, S * 0.18);
+      gradTop.addColorStop(0, '#ffffff');
+      gradTop.addColorStop(0.5, player.glow);
+      gradTop.addColorStop(1, player.color);
+
+      ctx.beginPath();
+      ctx.arc(x - 1, y - 2, S * 0.16, 0, Math.PI * 2);
+      ctx.fillStyle = gradTop;
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    init();
+  
+    gameBridge.ready().catch(()=>{});
+</script>
+<a href="../app.html#games" class="webchat-back">← العودة إلى WebChat</a><style>.webchat-back{position:fixed;top:12px;right:12px;z-index:9999;color:#f7d070;background:#101722dd;border:1px solid #f7d07066;border-radius:10px;padding:8px 12px;text-decoration:none;font:700 12px system-ui}</style></body>
+</html>

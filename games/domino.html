@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>🀄 لعبة الدومينو - 4 لاعبين مع البوتات والشيش</title>
     <style>
+    .board-area{width:min(96vw,1100px)!important;min-height:620px!important}.board-area canvas{width:100%!important;height:100%!important}
+
         :root {
             --gold: #ffd700;
             --table-green: #153e2b;
@@ -325,6 +327,10 @@
 
     let boneyard = [];
     let board = [];
+    const dominoParams=new URLSearchParams(location.search); const dominoMatchId=dominoParams.get('match'); let dominoOnlineReady=false;
+    async function syncDomino(){if(!dominoMatchId||!dominoOnlineReady)return;await gameBridge.event(dominoMatchId,'domino_state',{board,players:players.map(p=>({...p,hand:p.hand})),turn,boneyard});}
+    async function setupDominoOnline(){if(!dominoMatchId)return;try{await gameBridge.ready();gameBridge.mountChat(dominoMatchId);gameBridge.subscribe(dominoMatchId,ev=>{if(ev.event_type!=='domino_state'||ev.user_id===gameBridge.user.id)return;const st=ev.payload||{};if(Array.isArray(st.board))board=st.board;if(Array.isArray(st.players))players=st.players;if(Number.isInteger(st.turn))turn=st.turn;if(Array.isArray(st.boneyard))boneyard=st.boneyard;updateUI();});dominoOnlineReady=true;syncDomino();}catch(e){console.warn('domino online setup failed',e);}}
+
     let players = [];
     let turn = 0;
 
@@ -436,7 +442,7 @@
             document.getElementById('statusMsg').innerText = 'بدأت الجولة!';
         }
 
-        updateUI();
+        updateUI(); syncDomino();
     }
 
     function updateUI() {
@@ -576,7 +582,7 @@
         }
 
         playDominoSound();
-        checkWinOrNext();
+        checkWinOrNext(); syncDomino();
     }
 
     function aiTurn() {
@@ -724,7 +730,7 @@
         } catch(e){}
     }
 
-    gameBridge.ready().catch(()=>{});
+    gameBridge.ready().then(()=>{setupDominoOnline();}).catch(()=>{});
 </script>
 
 <a href="../app.html#games" class="webchat-back">← العودة إلى WebChat</a><style>.webchat-back{position:fixed;top:12px;right:12px;z-index:9999;color:#f7d070;background:#101722dd;border:1px solid #f7d07066;border-radius:10px;padding:8px 12px;text-decoration:none;font:700 12px system-ui}</style></body>

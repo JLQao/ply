@@ -277,8 +277,16 @@
     let isTouching = false;
     let isGameOver = false;
     let walletRoundStarted = false;
-    const raceFinishDistance = 1200;
+    const raceFinishDistance = 10000;
     let raceFinished = false;
+    const raceParams = new URLSearchParams(location.search);
+    const raceMatchId = raceParams.get('match');
+    let raceOnlineReady = false;
+    let raceRemoteDistance = 0;
+    let raceRemoteX = roadLeft + roadWidth * 0.68;
+    let raceLastSync = 0;
+    async function setupRaceOnline(){ if(!raceMatchId){raceOnlineReady=true;return;} try{await gameBridge.ready(); gameBridge.subscribe(raceMatchId,ev=>{if(ev.event_type!=='race_state'||ev.user_id===gameBridge.user.id)return;const st=ev.payload||{};raceRemoteDistance=Number(st.distance)||0;raceRemoteX=Number(st.x)||raceRemoteX; if(aiCars[0]){aiCars[0].distance=raceRemoteDistance;aiCars[0].x=raceRemoteX;aiCars[0].y=player.y-(raceRemoteDistance-distanceTraveled)*.35;}});raceOnlineReady=true;}catch(e){raceOnlineReady=false;} }
+    function syncRace(){if(!raceMatchId||!raceOnlineReady||performance.now()-raceLastSync<120)return;raceLastSync=performance.now();gameBridge.event(raceMatchId,'race_state',{distance:distanceTraveled,x:player.x,speed}).catch(()=>{});}
 
     let speed = 0;
     const maxSpeed = 26; 
@@ -300,14 +308,8 @@
     let aiCars = [];
 
     function initAICars() {
-      aiCars = [
-        { id: 1, x: roadLeft + 45, y: -200, speed: 12, color: '#00e676', darkColor: '#006633', distance: 300 },
-        { id: 2, x: roadLeft + 125, y: -550, speed: 15, color: '#00b0ff', darkColor: '#004466', distance: 600 },
-        { id: 3, x: roadLeft + 205, y: -900, speed: 11, color: '#ff3344', darkColor: '#880011', distance: 100 },
-        { id: 4, x: roadLeft + 280, y: -1250, speed: 14, color: '#e040fb', darkColor: '#6a1b9a', distance: 450 }
-      ];
+      aiCars = [{ id: 1, x: roadLeft + roadWidth * 0.68, y: -200, speed: 13, color: '#00e676', darkColor: '#006633', distance: 300 }];
     }
-
     async function handlePointerStart(e) {
       if (isGameOver) return;
       if (!walletRoundStarted) { const remaining = await gameBridge.debit('race', gameBridge.getBet()); if (remaining === null) return; walletRoundStarted = true; }
@@ -348,6 +350,7 @@
       }
 
       distanceTraveled += speed * 0.25;
+      syncRace();
       if (distanceTraveled >= raceFinishDistance && !raceFinished) triggerRaceFinish();
       roadOffset = (roadOffset + speed) % 80;
 
@@ -357,6 +360,7 @@
       updateEngineSound(speed / maxSpeed, isTouching);
 
       aiCars.forEach(ai => {
+        if(raceMatchId && raceOnlineReady && ai.id===1 && raceRemoteDistance>0){ ai.distance=raceRemoteDistance; ai.x=raceRemoteX; ai.y=player.y-(raceRemoteDistance-distanceTraveled)*.35; return; }
         const relativeSpeed = speed - ai.speed;
         ai.y += relativeSpeed;
         ai.distance += ai.speed * 0.25;
@@ -384,7 +388,7 @@
       });
 
       document.getElementById('speedMeter').innerHTML = `${Math.round(speed * 11.5)} <small style="font-size:0.7rem;">KM/H</small>`;
-      document.getElementById('rankMeter').innerText = `${rank} / 5`;
+      document.getElementById('rankMeter').innerText = `${rank} / 2`;
       document.getElementById('distMeter').innerHTML = `${Math.round(distanceTraveled)} <small style="font-size:0.7rem;">m</small>`;
     }
 

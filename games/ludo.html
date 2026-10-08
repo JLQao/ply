@@ -323,7 +323,7 @@
     function maybeRunLudoBot(){ if(!ludoBotController || !isLudoBot(currentTurn) || hasRolled || isAnimating) return; setTimeout(()=>handleDiceRoll(true),650); }
     async function setupOnlineLudo(){
       if(!ludoMatchId){ ludoOnlineReady=true; maybeRunLudoBot(); return; }
-      try{ await gameBridge.ready(); const {data:rows}=await window.supabaseClient.from('game_match_players').select('user_id,seat').eq('match_id',ludoMatchId).order('seat'); ludoBotSeats=new Set([0,1,2,3]); (rows||[]).forEach(r=>{ludoBotSeats.delete(r.seat);if(r.user_id===gameBridge.user.id)myLudoSeat=r.seat;}); ludoBotController=myLudoSeat===0; ludoOnlineReady=true; gameBridge.subscribe(ludoMatchId,ev=>{if(ev.event_type!=='ludo_state'||ev.user_id===gameBridge.user.id)return;const st=ev.payload||{};if(Array.isArray(st.pawns))pawns=st.pawns;if(Number.isInteger(st.currentTurn))currentTurn=st.currentTurn;diceValue=Number(st.diceValue)||0;hasRolled=!!st.hasRolled;drawBoard();updateUI();maybeRunLudoBot();}); logMessage(`اتصال أونلاين: ${4-ludoBotSeats.size} لاعبين حقيقيين و${ludoBotSeats.size} Bot`); maybeRunLudoBot(); }catch(e){logMessage('تعذر مزامنة المباراة، ستستمر اللعبة محليًا');ludoOnlineReady=true;}
+      try{ await gameBridge.ready(); gameBridge.mountChat(ludoMatchId); const {data:rows}=await window.supabaseClient.from('game_match_players').select('user_id,seat').eq('match_id',ludoMatchId).order('seat'); ludoBotSeats=new Set([0,1,2,3]); (rows||[]).forEach(r=>{ludoBotSeats.delete(r.seat);if(r.user_id===gameBridge.user.id)myLudoSeat=r.seat;}); ludoBotController=true; ludoOnlineReady=true; gameBridge.subscribe(ludoMatchId,ev=>{if(ev.event_type!=='ludo_state'||ev.user_id===gameBridge.user.id)return;const st=ev.payload||{};if(Array.isArray(st.pawns))pawns=st.pawns;if(Number.isInteger(st.currentTurn))currentTurn=st.currentTurn;diceValue=Number(st.diceValue)||0;hasRolled=!!st.hasRolled;drawBoard();updateUI();maybeRunLudoBot();}); logMessage(`اتصال أونلاين: ${4-ludoBotSeats.size} لاعبين حقيقيين و${ludoBotSeats.size} Bot`); maybeRunLudoBot(); }catch(e){logMessage('تعذر مزامنة المباراة، ستستمر اللعبة محليًا');ludoOnlineReady=true;}
     }
 
     function init() {
@@ -338,7 +338,7 @@
       document.getElementById('playerName').style.color = p.color;
       document.getElementById('playerDot').style.backgroundColor = p.color;
       document.getElementById('playerDot').style.boxShadow = `0 0 12px ${p.color}`;
-      document.getElementById('rollBtn').disabled = hasRolled || isAnimating;
+      document.getElementById('rollBtn').disabled = hasRolled || isAnimating || (ludoMatchId && currentTurn!==myLudoSeat) || isLudoBot(currentTurn);
     }
 
     function logMessage(msg) {
@@ -386,13 +386,13 @@
 
       if (movablePawns.length === 0) {
         logMessage(`لا توجد حركات متاح للـ ${players[currentTurn].name}. ينتقل الدور!`);
-        setTimeout(nextTurn, 1400);
+        setTimeout(() => { hasRolled=false; nextTurn(); }, 900);
       } else if (movablePawns.length === 1 && pawns[currentTurn][movablePawns[0]] !== -1) {
         logMessage(`${players[currentTurn].name}: جاري تحريك الحجر المتاح تلقائياً...`);
-        setTimeout(() => movePawnAnimated(movablePawns[0]), 500);
+        setTimeout(() => movePawnAnimated(movablePawns[0], isLudoBot(currentTurn)), 500);
       } else {
-        logMessage(`${players[currentTurn].name}: انقر على أحد الأحجار المتوهجة بالذهبي لتحريكه.`);
-        drawBoard();
+        if (isLudoBot(currentTurn)) { logMessage(`${players[currentTurn].name}: Bot يختار حجرًا...`); drawBoard(); setTimeout(() => movePawnAnimated(movablePawns[0], true), 500); }
+        else { logMessage(`${players[currentTurn].name}: انقر على أحد الأحجار المتوهجة بالذهبي لتحريكه.`); drawBoard(); }
       }
     }
 
@@ -479,6 +479,7 @@
         hasRolled = false;
         if(diceValue === 6) logMessage(`حصلت على رقم 6! ارمِ النرد مجدداً.`);
         updateUI();
+        maybeRunLudoBot();
       } else {
         nextTurn();
       }
@@ -493,6 +494,8 @@
       logMessage(`الدور الآن للـ ${players[currentTurn].name}.`);
       updateUI();
       drawBoard();
+      broadcastLudoState();
+      maybeRunLudoBot();
     }
 
     // دعم اللمس والنقر

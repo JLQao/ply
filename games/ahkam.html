@@ -348,6 +348,7 @@
     let audioCtx = null;
     let isMuted = false;
     let walletRoundStarted = false;
+    const ahkamParams=new URLSearchParams(location.search); const ahkamMatchId=ahkamParams.get('match'); let ahkamSeat=0,ahkamHost=false,ahkamOnline=false; let ahkamRealPlayers=[]; let ahkamStateVersion=0;
 
     function getAudioContext() {
         if (!audioCtx) {
@@ -441,44 +442,15 @@
         document.getElementById(id).classList.remove("hidden");
     }
 
+    async function broadcastAhkamState(state){if(ahkamOnline&&ahkamMatchId){state.version=++ahkamStateVersion;await gameBridge.event(ahkamMatchId,'ahkam_state',state);}}
+    function applyAhkamState(state,remote=false){if(!state)return;if(Array.isArray(state.participants))allParticipants=state.participants;if(state.king)currentKing=state.king;if(state.victim)currentVictim=state.victim;if(state.witness)currentWitness=state.witness;if(state.phase==='results'){document.getElementById("res-king").innerText=currentKing;document.getElementById("res-victim").innerText=currentVictim;document.getElementById("res-witness").innerText=currentWitness;document.getElementById("res-rule").innerText=state.rule||'';showScreen('sec-results');return;}if(state.phase==='judge'){if(currentKing===userPlayerName){document.getElementById("user-king-name").innerText=currentKing;document.getElementById("user-victim-name").innerText=currentVictim;document.getElementById("royal-rule-text").value='';showScreen('sec-user-judge');}else if(String(currentKing).startsWith('🤖')){document.getElementById("bot-king-title").innerText=`👑 جلالة الملك ${currentKing} أصدر أمره...`;document.getElementById("bot-thinking-text").innerText=`🤖 ${currentKing} يدرس ملف ${currentVictim} لإصدار الحكم...`;showScreen('sec-bot-judging');if(ahkamHost&&!remote)setTimeout(()=>finalizeRound(botRulesPool[Math.floor(Math.random()*botRulesPool.length)]),2200);}else{document.getElementById("bot-king-title").innerText=`👑 بانتظار حكم اللاعب ${currentKing}`;document.getElementById("bot-thinking-text").innerText='ينتظر المجلس الحكم من اللاعب الموجود أونلاين...';showScreen('sec-bot-judging');}}}
     async function startDrawProcess() {
         if (!walletRoundStarted) { const remaining = await gameBridge.debit('ahkam', gameBridge.getBet()); if (remaining === null) return; walletRoundStarted = true; }
-        playClickSound();
-        const inputName = document.getElementById("player-name").value.trim();
-        userPlayerName = inputName ? inputName : "المحارب الملكي";
-
-        allParticipants = [userPlayerName, ...bots];
-
-        showScreen('sec-drawing');
-
-        // خلط القائمة عشوائياً
-        let shuffled = [...allParticipants].sort(() => 0.5 - Math.random());
-        currentKing = shuffled[0];
-        currentVictim = shuffled[1];
-        currentWitness = shuffled[2];
-
-        runRouletteAnimation(`👑 جاري اختيار الحاكم...`, currentKing, () => {
-            runRouletteAnimation(`🎯 جاري اختيار المحكوم عليه...`, currentVictim, () => {
-                // الشاشات حسب من هو الملك
-                if (currentKing === userPlayerName) {
-                    // إذا كان اللاعب البشري هو الملك
-                    document.getElementById("user-king-name").innerText = currentKing;
-                    document.getElementById("user-victim-name").innerText = currentVictim;
-                    document.getElementById("royal-rule-text").value = "";
-                    showScreen('sec-user-judge');
-                } else {
-                    // إذا كان الملك أحد الروبوتات
-                    document.getElementById("bot-king-title").innerText = `👑 جلالة الملك ${currentKing} أصدر أمره...`;
-                    document.getElementById("bot-thinking-text").innerText = `🤖 ${currentKing} يدرس ملف ${currentVictim} لإصدار الحكم...`;
-                    showScreen('sec-bot-judging');
-
-                    setTimeout(() => {
-                        const randomRule = botRulesPool[Math.floor(Math.random() * botRulesPool.length)];
-                        finalizeRound(randomRule);
-                    }, 2200);
-                }
-            });
-        });
+        playClickSound(); const inputName=document.getElementById("player-name").value.trim(); userPlayerName=inputName||gameBridge.profile?.display_name||"المحارب الملكي"; document.getElementById("player-name").value=userPlayerName;
+        if(ahkamOnline&&!ahkamHost)return toast('انضممت للمباراة؛ انتظر الحاكم الذي بدأ الجولة من اللاعب الأول');
+        allParticipants=[...ahkamRealPlayers,...bots.slice(0,Math.max(0,3-ahkamRealPlayers.length))]; if(!allParticipants.includes(userPlayerName))allParticipants.unshift(userPlayerName); allParticipants=allParticipants.slice(0,3); if(!allParticipants.length)allParticipants=[userPlayerName];
+        const shuffled=[...allParticipants].sort(()=>0.5-Math.random());currentKing=shuffled[0];currentVictim=shuffled[1]||shuffled[0];currentWitness=shuffled[2]||shuffled[0];showScreen('sec-drawing');
+        runRouletteAnimation(`👑 جاري اختيار الحاكم...`,currentKing,()=>runRouletteAnimation(`🎯 جاري اختيار المحكوم عليه...`,currentVictim,async()=>{const state={phase:'judge',participants:allParticipants,king:currentKing,victim:currentVictim,witness:currentWitness};await broadcastAhkamState(state);applyAhkamState(state); }));
     }
 
     function runRouletteAnimation(title, targetWinner, onComplete) {
@@ -523,7 +495,7 @@
         finalizeRound(ruleText);
     }
 
-    function finalizeRound(finalRule) {
+    async function finalizeRound(finalRule,remote=false) {
         document.getElementById("res-king").innerText = currentKing;
         document.getElementById("res-victim").innerText = currentVictim;
         document.getElementById("res-witness").innerText = currentWitness;
@@ -531,6 +503,7 @@
 
         playFanfareSound();
         showScreen('sec-results');
+        if(!remote)await broadcastAhkamState({phase:'results',participants:allParticipants,king:currentKing,victim:currentVictim,witness:currentWitness,rule:finalRule});
     }
 
     function resetAll() {
@@ -538,7 +511,8 @@
         showScreen('sec-setup');
     }
 
-    gameBridge.ready().catch(()=>{});
+    async function setupAhkamOnline(){try{const ctx=await gameBridge.ready();userPlayerName=ctx.profile?.display_name||userPlayerName;document.getElementById('player-name').value=userPlayerName;document.getElementById('player-name').disabled=!!ahkamMatchId;if(!ahkamMatchId){ahkamRealPlayers=[userPlayerName];return;}const {data:rows}=await window.supabaseClient.from('game_match_players').select('user_id,seat').eq('match_id',ahkamMatchId).order('seat');ahkamSeat=(rows||[]).find(r=>r.user_id===gameBridge.user.id)?.seat??0;ahkamHost=ahkamSeat===Math.min(...(rows||[]).map(r=>Number(r.seat)));const ids=(rows||[]).map(r=>r.user_id);const {data:people}=ids.length?await window.supabaseClient.from('profiles').select('id,display_name,username').in('id',ids):{data:[]};const names=Object.fromEntries((people||[]).map(x=>[x.id,x.display_name||x.username]));ahkamRealPlayers=(rows||[]).map(r=>names[r.user_id]||'لاعب').filter(Boolean);if(!ahkamRealPlayers.includes(userPlayerName))ahkamRealPlayers[ahkamSeat]=userPlayerName;ahkamOnline=true;gameBridge.mountChat(ahkamMatchId);gameBridge.subscribe(ahkamMatchId,ev=>{if(ev.event_type==='ahkam_state'&&ev.user_id!==gameBridge.user.id)applyAhkamState(ev.payload||{},true);});}catch(e){console.warn('ahkam online setup failed',e);}}
+    setupAhkamOnline().catch(()=>{});
 </script>
 
 <a href="../app.html#games" class="webchat-back">← العودة إلى WebChat</a><style>.webchat-back{position:fixed;top:12px;right:12px;z-index:9999;color:#f7d070;background:#101722dd;border:1px solid #f7d07066;border-radius:10px;padding:8px 12px;text-decoration:none;font:700 12px system-ui}</style></body>

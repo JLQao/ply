@@ -347,6 +347,7 @@
 
     async function handleDiceRoll(isBot=false) {
       if (hasRolled || isAnimating || (!isBot && ludoMatchId && currentTurn!==myLudoSeat) || (isBot && !isLudoBot(currentTurn))) return;
+      if(!isBot){window.supabaseClient?.rpc('increment_dice_rolls',{p_count:1}).catch(()=>{});}
       if (!isBot && !walletRoundStarted) { const remaining = await gameBridge.debit('ludo', gameBridge.getBet()); if (remaining === null) return; walletRoundStarted = true; }
 
       const diceEl = document.getElementById('diceVal');

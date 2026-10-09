@@ -536,12 +536,12 @@
                 setTimeout(nextTurn, 1500);
             }
         } else {
-            document.getElementById('statusMsg').innerText = 'دورك الآن للعب';
+            document.getElementById('statusMsg').innerText = 'دورك الآن للعب — اضغط على قطعة الدومينو المطابقة من يدك';
             document.getElementById('drawBtn').style.display = 'none';
         }
     }
 
-    function drawFromBoneyard() {
+    async function drawFromBoneyard() {
         if (boneyard.length > 0 && turn === 0) {
             players[0].hand.push(boneyard.pop());
             updateUI();
@@ -611,12 +611,12 @@
             }
             playDominoSound();
             document.getElementById('statusMsg').innerText = `لعب ${p.name} قطعة على الطاولة`;
-            checkWinOrNext();
+            checkWinOrNext(); syncDomino();
         } else {
             if (boneyard.length > 0) {
                 p.hand.push(boneyard.pop());
                 document.getElementById('statusMsg').innerText = `سحب ${p.name} قطعة من السحب`;
-                setTimeout(aiTurn, 800);
+                syncDomino(); setTimeout(aiTurn, 800);
             } else {
                 document.getElementById('statusMsg').innerText = `تخطى ${p.name} دوره لعدم وجود قطع`;
                 setTimeout(nextTurn, 1200);
@@ -648,6 +648,7 @@
     function nextTurn() {
         turn = (turn + 1) % playerMode;
         updateUI();
+        syncDomino();
     }
 
     function resetToSetup() {
